@@ -1,14 +1,14 @@
 {
   "name": "subquery-call-visitor",
-  "version": "0.0.1",
-  "description": "Project for tracking direct and delegated votings gor OpenGov",
+  "version": "0.0.2",
+  "description": "Easy traversing of nested Substrate calls in your SubQuery indexer",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
     "test": "jest"
   },
-  "homepage": "https://github.com/subquery/kusama-subql-starter",
-  "repository": "github:subquery/kusama-subql-starter",
+  "homepage": "https://github.com/nova-wallet/subquery-call-visitor",
+  "repository": "github:nova-wallet/subquery-call-visitor",
   "files": [
     "dist"
   ],
