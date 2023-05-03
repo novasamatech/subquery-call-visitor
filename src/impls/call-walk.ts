@@ -49,6 +49,10 @@ class CallWalkImpl implements CallWalk {
         let nestedNode = this.findNestedNode(visitedCall.call)
 
         if (nestedNode == undefined) {
+            let call = visitedCall.call
+            let display = `${call.section}.${call.method}`
+            this.logInfo(`Visiting leaf: ${display}, success: ${visitedCall.success}`, depth + 1)
+
             // leaf node
             await visitor.visit(visitedCall)
         } else {

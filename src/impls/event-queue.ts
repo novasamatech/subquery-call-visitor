@@ -16,6 +16,10 @@ class EventQueueImpl implements EventQueue {
         this.events = new Array(...events)
     }
 
+    all(): AnyEvent[] {
+        return this.events
+    }
+
     popFromEnd(...eventTypes: IsEvent<AnyTuple, Object>[]) {
         this.takeFromEnd(...eventTypes)
     }
@@ -29,9 +33,15 @@ class EventQueueImpl implements EventQueue {
     }
 
     takeTail(...eventTypes: IsEvent<AnyTuple, Object>[]): AnyEvent[] {
-        const [_, eventIndex] = this.findEventAndIndex(...eventTypes)
+        const result = this.findEventAndIndex(...eventTypes)
 
-        return this.removeAllAfterExclusive(eventIndex)
+        if (result != undefined) {
+            const [_, eventIndex] = result
+
+            return this.removeAllAfterExclusive(eventIndex)
+        } else  {
+            return this.removeAllAfterInclusive(0)
+        }
     }
 
     private findEventAndIndex<A extends AnyTuple>(...isEvents: IsEvent<A>[]): [IEvent<A>, number] | undefined {
@@ -50,12 +60,10 @@ class EventQueueImpl implements EventQueue {
         return undefined
     }
 
-    private removeAllAfterInclusive(index: number) {
+    private removeAllAfterInclusive(index: number): AnyEvent[] {
         const deleteCount = this.events.length - index
 
-        if (deleteCount > 0) {
-            this.events.splice(index, deleteCount)
-        }
+        return this.events.splice(index, deleteCount)
     }
 
     private removeAllAfterExclusive(index: number): AnyEvent[] {

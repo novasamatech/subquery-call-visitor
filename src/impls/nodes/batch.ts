@@ -19,9 +19,9 @@ export class BatchNode implements NestedCallNode {
 
         context.logger.info(`Visiting utility.batch with ${innerCalls.length} inner calls`)
 
-        let completionEvent = context.eventQueue.popFromEnd(BatchCompleted, BatchInterrupted)
+        let completionEvent = context.eventQueue.takeFromEnd(BatchCompleted, BatchInterrupted)
 
-        context.logger.info(`Batch finished with ${completionEvent} outcome`)
+        context.logger.info(`Batch finished with ${completionEvent.method} outcome`)
 
         let lastSuccessIndex: number
         if (BatchCompleted.is(completionEvent)) {
@@ -58,7 +58,11 @@ export class BatchNode implements NestedCallNode {
             }
         }
 
-        for (const visitedCall of visitedSubItems) {
+        for (let i = 0; i < visitedSubItems.length; i++) {
+            const visitedCall = visitedSubItems[i]
+
+            context.logger.info(`Batch - visiting batch item at ${i}`)
+
             await context.nestedVisit(visitedCall);
         }
     }
