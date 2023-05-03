@@ -1,0 +1,31 @@
+{
+  "name": "subquery-call-visitor",
+  "version": "0.0.1",
+  "description": "Project for tracking direct and delegated votings gor OpenGov",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "homepage": "https://github.com/subquery/kusama-subql-starter",
+  "repository": "github:subquery/kusama-subql-starter",
+  "files": [
+    "dist"
+  ],
+  "author": "Novasama Techonologies",
+  "license": "MIT",
+  "devDependencies": {
+    "@jest/globals": "^29.3.1",
+    "@polkadot/api": "^10",
+    "@subql/cli": "latest",
+    "@subql/types": "latest",
+    "jest": "^29.3.1",
+    "ts-jest": "^29.0.3",
+    "typescript": "^4.1.3"
+  },
+  "dependencies": {
+    "@types/big.js": "^6.1.6",
+    "big.js": "^6.2.1",
+    "pino": "^8.12.0"
+  }
+}
