@@ -1,14 +1,15 @@
 import {EventCountingContext, MutableEventQueue, NestedCallNode, VisitingContext} from "../interfaces";
 import {CallVisitor, CallWalk, VisitedCall} from "../interfaces";
 import {SubstrateExtrinsic} from "@subql/types";
-import {BatchNode} from "./nodes/batch";
+import {BatchNode} from "./nodes/batch/batch";
 import {CreateEventQueue} from "./event-queue";
 import {EventQueue} from "../interfaces";
 import {CallBase} from "@polkadot/types/types/calls";
 import {AnyTuple} from "@polkadot/types-codec/types";
 import {Logger} from "pino"
+import {BatchAllNode} from "./nodes/batch/batchAll";
 
-const DefaultKnownNodes: NestedCallNode[] = [new BatchNode()]
+const DefaultKnownNodes: NestedCallNode[] = [new BatchNode(), new BatchAllNode()]
 
 export function CreateCallWalk(
     nodes: NestedCallNode[] = DefaultKnownNodes,
@@ -61,6 +62,7 @@ class CallWalkImpl implements CallWalk {
 
             let context: VisitingContext = {
                 visitor: visitor,
+                callSucceeded: visitedCall.success,
                 eventQueue: eventQueue,
                 origin: visitedCall.origin,
                 extrinsic: visitedCall.extrinsic,
@@ -81,7 +83,7 @@ class CallWalkImpl implements CallWalk {
     private endExclusiveToSkipInternalEvents(
         call: CallBase<AnyTuple>,
         eventQueue: EventQueue,
-        endExclusive: number
+        endExclusive: number,
     ): number {
         let nestedNode = this.findNestedNode(call)
 
