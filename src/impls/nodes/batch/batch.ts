@@ -5,11 +5,7 @@ import {AnyTuple} from "@polkadot/types-codec/types";
 import {IVec} from "@polkadot/types-codec/types/interfaces";
 import {FunctionMetadataLatest} from "@polkadot/types/interfaces";
 import {IEvent} from "@polkadot/types/types";
-import {takeNestedBatchItemEvents} from "./types";
-
-const BatchCompleted = api.events.utility.BatchCompleted
-const BatchInterrupted = api.events.utility.BatchInterrupted
-const ItemCompleted = api.events.utility.ItemCompleted
+import {BatchCompleted, BatchInterrupted, ItemCompleted, takeCompletedBatchItemEvents} from "./types";
 
 const CompletionEvents = [BatchCompleted, BatchInterrupted]
 const ItemEvents = [ItemCompleted]
@@ -61,7 +57,8 @@ export class BatchNode implements NestedCallNode {
 
         // visit completed sub items
         for (let i = lastSuccessIndex; i >= 0; i--) {
-            const alNestedEvents = takeNestedBatchItemEvents(context, innerCalls[i])
+            context.eventQueue.popFromEnd(ItemCompleted);
+            const alNestedEvents = takeCompletedBatchItemEvents(context, innerCalls[i])
 
             visitedSubItems[i] = {
                 call: innerCalls[i],
