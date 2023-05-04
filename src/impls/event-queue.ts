@@ -1,14 +1,14 @@
 import {AnyTuple} from "@polkadot/types-codec/types";
 import {IsEvent} from "@polkadot/types/metadata/decorate/types";
-import {EventQueue} from "../interfaces";
+import {EventQueue, MutableEventQueue} from "../interfaces";
 import {IEvent} from "@polkadot/types/types";
 import {AnyEvent} from "../interfaces";
 
-export function EventQueue(events: AnyEvent[]): EventQueue {
+export function CreateEventQueue(events: AnyEvent[]): MutableEventQueue {
     return new EventQueueImpl(events)
 }
 
-class EventQueueImpl implements EventQueue {
+class EventQueueImpl implements MutableEventQueue {
 
     private readonly events: Array<AnyEvent>
 
@@ -20,12 +20,30 @@ class EventQueueImpl implements EventQueue {
         return this.events
     }
 
+    peekItemFromEnd(eventTypes: IsEvent<AnyTuple, Object>[], endExclusive: number): [AnyEvent, number] | undefined {
+        return this.findEventAndIndex(eventTypes, endExclusive)
+    }
+
+    indexOfLast(eventTypes: IsEvent<AnyTuple, Object>[], endExclusive: number): number | undefined {
+        let result = this.findEventAndIndex(eventTypes, endExclusive)
+
+        if (result != undefined) {
+            return result[1]
+        } else  {
+            return undefined
+        }
+    }
+
+    takeAllAfterInclusive(endInclusive: number): AnyEvent[] {
+        return this.removeAllAfterInclusive(endInclusive)
+    }
+
     popFromEnd(...eventTypes: IsEvent<AnyTuple, Object>[]) {
         this.takeFromEnd(...eventTypes)
     }
 
     takeFromEnd(...eventTypes: IsEvent<AnyTuple, Object>[]): AnyEvent | undefined {
-        const [event, eventIndex] = this.findEventAndIndex(...eventTypes)
+        const [event, eventIndex] = this.findEventAndIndex(eventTypes)
 
         this.removeAllAfterInclusive(eventIndex)
 
@@ -33,7 +51,7 @@ class EventQueueImpl implements EventQueue {
     }
 
     takeTail(...eventTypes: IsEvent<AnyTuple, Object>[]): AnyEvent[] {
-        const result = this.findEventAndIndex(...eventTypes)
+        const result = this.findEventAndIndex(eventTypes)
 
         if (result != undefined) {
             const [_, eventIndex] = result
@@ -44,10 +62,14 @@ class EventQueueImpl implements EventQueue {
         }
     }
 
-    private findEventAndIndex<A extends AnyTuple>(...isEvents: IsEvent<A>[]): [IEvent<A>, number] | undefined {
+    private findEventAndIndex<A extends AnyTuple>(
+        isEvents: IsEvent<A>[],
+        endExclusive: number = this.events.length,
+    ): [IEvent<A>, number] | undefined {
         let eventsQueue = this.events
+        let limit = Math.min(endExclusive, this.events.length)
 
-        for (let i = this.events.length - 1; i >= 0; i--) {
+        for (let i = limit - 1; i >= 0; i--) {
             const nextEvent = eventsQueue[i]
 
             for (const isEvent of isEvents) {

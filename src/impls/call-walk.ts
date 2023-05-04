@@ -1,8 +1,9 @@
-import {NestedCallNode, VisitingContext} from "../interfaces";
+import {EventCountingContext, MutableEventQueue, NestedCallNode, VisitingContext} from "../interfaces";
 import {CallVisitor, CallWalk, VisitedCall} from "../interfaces";
 import {SubstrateExtrinsic} from "@subql/types";
 import {BatchNode} from "./nodes/batch";
-import {EventQueue} from "./event-queue";
+import {CreateEventQueue} from "./event-queue";
+import {EventQueue} from "../interfaces";
 import {CallBase} from "@polkadot/types/types/calls";
 import {AnyTuple} from "@polkadot/types-codec/types";
 import {Logger} from "pino"
@@ -56,13 +57,17 @@ class CallWalkImpl implements CallWalk {
             // leaf node
             await visitor.visit(visitedCall)
         } else {
+            let eventQueue = CreateEventQueue(visitedCall.events);
 
             let context: VisitingContext = {
                 visitor: visitor,
-                eventQueue: EventQueue(visitedCall.events),
+                eventQueue: eventQueue,
                 origin: visitedCall.origin,
                 extrinsic: visitedCall.extrinsic,
                 nestedVisit: (visitedCall) => this.nestedVisit(visitor, visitedCall, depth + 1),
+                endExclusiveToSkipInternalEvents: (innerCall) => {
+                    return this.endExclusiveToSkipInternalEvents(innerCall, eventQueue, visitedCall.events.length)
+                },
                 logger: {
                     warn: (content) => this.logWarn(content, depth),
                     info: (content) => this.logInfo(content, depth)
@@ -70,6 +75,29 @@ class CallWalkImpl implements CallWalk {
             }
 
             await nestedNode.visit(visitedCall.call, context)
+        }
+    }
+
+    private endExclusiveToSkipInternalEvents(
+        call: CallBase<AnyTuple>,
+        eventQueue: EventQueue,
+        endExclusive: number
+    ): number {
+        let nestedNode = this.findNestedNode(call)
+
+        if (nestedNode != undefined) {
+            let context: EventCountingContext = {
+                eventQueue: eventQueue,
+                endExclusive: endExclusive,
+                endExclusiveToSkipInternalEvents: (innerCall, endExclusiveInner) => {
+                    return this.endExclusiveToSkipInternalEvents(innerCall, eventQueue, endExclusiveInner)
+                }
+            }
+
+            return nestedNode.endExclusiveToSkipInternalEvents(call, context)
+        } else  {
+            // no internal events to skip since its a leaf
+            return endExclusive
         }
     }
 
