@@ -51,7 +51,7 @@ export class AsMultiNode implements NestedCallNode {
         }
     }
 
-    async visitFailedMultisigCall(call: CallBase<AnyTuple>, context: VisitingContext) : Promise<void> {
+    async visitFailedMultisigCall(call: CallBase<AnyTuple>, context: VisitingContext): Promise<void> {
         const visitedCall: VisitedCall = {
             success: false,
             origin: this.extractMultisigOrigin(call, context.origin),
@@ -63,7 +63,7 @@ export class AsMultiNode implements NestedCallNode {
         await context.nestedVisit(visitedCall)
     }
 
-    async visitSucceededMultisigCall(call: CallBase<AnyTuple>, context: VisitingContext) : Promise<void> {
+    async visitSucceededMultisigCall(call: CallBase<AnyTuple>, context: VisitingContext): Promise<void> {
         const visitedCall: VisitedCall = {
             success: true,
             origin: this.extractMultisigOrigin(call, context.origin),
