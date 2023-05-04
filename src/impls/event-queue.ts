@@ -29,7 +29,7 @@ class EventQueueImpl implements MutableEventQueue {
 
         if (result != undefined) {
             return result[1]
-        } else  {
+        } else {
             return undefined
         }
     }
@@ -57,7 +57,7 @@ class EventQueueImpl implements MutableEventQueue {
             const [_, eventIndex] = result
 
             return this.removeAllAfterExclusive(eventIndex)
-        } else  {
+        } else {
             return this.removeAllAfterInclusive(0)
         }
     }

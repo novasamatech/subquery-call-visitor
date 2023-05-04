@@ -39,7 +39,7 @@ class CallWalkImpl implements CallWalk {
             extrinsic: source
         }
 
-        await this.nestedVisit(visitor, rootVisitedCall,  0)
+        await this.nestedVisit(visitor, rootVisitedCall, 0)
     }
 
     private async nestedVisit(
@@ -95,7 +95,7 @@ class CallWalkImpl implements CallWalk {
             }
 
             return nestedNode.endExclusiveToSkipInternalEvents(call, context)
-        } else  {
+        } else {
             // no internal events to skip since its a leaf
             return endExclusive
         }

@@ -95,7 +95,7 @@ export class BatchNode implements NestedCallNode {
         }
     }
 
-    private numberOfSucceedItems(innerCals: CallBase<AnyTuple>[], event: AnyEvent) : number {
+    private numberOfSucceedItems(innerCals: CallBase<AnyTuple>[], event: AnyEvent): number {
         if (BatchCompleted.is(event)) {
             return innerCals.length
         } else if (BatchInterrupted.is(event)) {
@@ -107,7 +107,7 @@ export class BatchNode implements NestedCallNode {
         }
     }
 
-    private lastSucceedItemIndex(innerCals: CallBase<AnyTuple>[], event: AnyEvent) : number {
+    private lastSucceedItemIndex(innerCals: CallBase<AnyTuple>[], event: AnyEvent): number {
         return this.numberOfSucceedItems(innerCals, event) - 1
     }
 }
