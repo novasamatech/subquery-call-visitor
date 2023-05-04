@@ -9,9 +9,12 @@ import {AnyTuple} from "@polkadot/types-codec/types";
 import {Logger} from "pino"
 import {BatchAllNode} from "./nodes/batch/batchAll";
 import {ForceBatchNode} from "./nodes/batch/forceBatch";
+import {AsMultiNode} from "./nodes/multisig/asMulti";
+import {AsMultiThreshold1Node} from "./nodes/multisig/asMultiThreshold1";
 
 const DefaultKnownNodes: NestedCallNode[] = [
-    new BatchNode(), new BatchAllNode(), new ForceBatchNode()
+    new BatchNode(), new BatchAllNode(), new ForceBatchNode(),
+    new AsMultiNode(), new AsMultiThreshold1Node()
 ]
 
 export function CreateCallWalk(
@@ -56,7 +59,8 @@ class CallWalkImpl implements CallWalk {
         if (nestedNode == undefined) {
             let call = visitedCall.call
             let display = `${call.section}.${call.method}`
-            this.logInfo(`Visiting leaf: ${display}, success: ${visitedCall.success}`, depth + 1)
+            let origin = visitedCall.origin
+            this.logInfo(`Visiting leaf: ${display}, success: ${visitedCall.success}, origin: ${origin}`, depth + 1)
 
             // leaf node
             await visitor.visit(visitedCall)
