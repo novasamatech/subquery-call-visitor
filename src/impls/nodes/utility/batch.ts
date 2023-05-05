@@ -3,8 +3,6 @@ import {VisitedCall} from "../../../interfaces";
 import {CallBase} from "@polkadot/types/types/calls";
 import {AnyTuple} from "@polkadot/types-codec/types";
 import {IVec} from "@polkadot/types-codec/types/interfaces";
-import {FunctionMetadataLatest} from "@polkadot/types/interfaces";
-import {IEvent} from "@polkadot/types/types";
 import {BatchCompleted, BatchInterrupted, ItemCompleted, takeCompletedBatchItemEvents} from "./types";
 
 const CompletionEvents = [BatchCompleted, BatchInterrupted]
