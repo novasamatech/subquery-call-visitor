@@ -1,22 +1,23 @@
-import {EventCountingContext, MutableEventQueue, NestedCallNode, VisitingContext} from "../interfaces";
+import {EventCountingContext, NestedCallNode, VisitingContext} from "../interfaces";
 import {CallVisitor, CallWalk, VisitedCall} from "../interfaces";
 import {SubstrateExtrinsic} from "@subql/types";
-import {BatchNode} from "./nodes/batch/batch";
 import {CreateEventQueue} from "./event-queue";
 import {EventQueue} from "../interfaces";
 import {CallBase} from "@polkadot/types/types/calls";
 import {AnyTuple} from "@polkadot/types-codec/types";
 import {Logger} from "pino"
-import {BatchAllNode} from "./nodes/batch/batchAll";
-import {ForceBatchNode} from "./nodes/batch/forceBatch";
+import {BatchAllNode} from "./nodes/utility/batchAll";
+import {ForceBatchNode} from "./nodes/utility/forceBatch";
 import {AsMultiNode} from "./nodes/multisig/asMulti";
 import {AsMultiThreshold1Node} from "./nodes/multisig/asMultiThreshold1";
 import {ProxyNode} from "./nodes/proxy/proxy";
+import {AsDerivativeNode} from "./nodes/utility/asDerivative";
+import {BatchNode} from "./nodes/utility/batch";
 
 export const DefaultKnownNodes: NestedCallNode[] = [
-    new BatchNode(), new BatchAllNode(), new ForceBatchNode(),
+    new BatchNode(), new BatchAllNode(), new ForceBatchNode(), new AsDerivativeNode(),
     new AsMultiNode(), new AsMultiThreshold1Node(),
-    new ProxyNode()
+    new ProxyNode(),
 ]
 
 export function CreateCallWalk(
