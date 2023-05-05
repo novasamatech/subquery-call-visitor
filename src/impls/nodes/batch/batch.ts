@@ -1,10 +1,11 @@
-import {AnyEvent, EventCountingContext, NestedCallNode, VisitingContext} from "../../interfaces";
-import {VisitedCall} from "../../interfaces";
+import {AnyEvent, EventCountingContext, NestedCallNode, VisitingContext} from "../../../interfaces";
+import {VisitedCall} from "../../../interfaces";
 import {CallBase} from "@polkadot/types/types/calls";
 import {AnyTuple} from "@polkadot/types-codec/types";
 import {IVec} from "@polkadot/types-codec/types/interfaces";
 import {FunctionMetadataLatest} from "@polkadot/types/interfaces";
 import {IEvent} from "@polkadot/types/types";
+import {takeNestedBatchItemEvents} from "./types";
 
 const BatchCompleted = api.events.utility.BatchCompleted
 const BatchInterrupted = api.events.utility.BatchInterrupted
@@ -42,28 +43,25 @@ export class BatchNode implements NestedCallNode {
 
         context.logger.info(`Visiting utility.batch with ${innerCalls.length} inner calls`)
 
-        let completionEvent = context.eventQueue.takeFromEnd(BatchCompleted, BatchInterrupted)
+        let lastSuccessIndex: number
 
-        context.logger.info(`Batch finished with ${completionEvent.method} outcome`)
+        if (context.callSucceeded) {
+            let completionEvent = context.eventQueue.takeFromEnd(BatchCompleted, BatchInterrupted)
 
-        let lastSuccessIndex: number = this.lastSucceedItemIndex(innerCalls, completionEvent)
+            context.logger.info(`Batch finished with ${completionEvent.method} outcome`)
+
+            lastSuccessIndex = this.lastSucceedItemIndex(innerCalls, completionEvent)
+        } else  {
+            context.logger.info(`Batch was reverted by the outer parent`)
+
+            lastSuccessIndex = -1
+        }
 
         let visitedSubItems: VisitedCall[] = new Array(innerCalls.length)
 
         // visit completed sub items
         for (let i = lastSuccessIndex; i >= 0; i--) {
-            context.eventQueue.popFromEnd(ItemCompleted);
-
-            const internalEventsEndExclusive = context.endExclusiveToSkipInternalEvents(innerCalls[i])
-
-            // internalEnd is exclusive => it holds index of last internal event
-            // thus, we delete them inclusively
-            const someOfNestedEvents = context.eventQueue.takeAllAfterInclusive(internalEventsEndExclusive)
-
-            // now it is safe to go until ItemCompleted since we removed all potential nested events above
-            const remainingNestedEvents = context.eventQueue.takeTail(ItemCompleted)
-
-            const alNestedEvents = [...remainingNestedEvents, ...someOfNestedEvents]
+            const alNestedEvents = takeNestedBatchItemEvents(context, innerCalls[i])
 
             visitedSubItems[i] = {
                 call: innerCalls[i],
