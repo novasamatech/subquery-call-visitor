@@ -3,7 +3,7 @@ import {VisitedCall} from "../../../interfaces";
 import {CallBase} from "@polkadot/types/types/calls";
 import {AnyTuple} from "@polkadot/types-codec/types";
 import {IVec} from "@polkadot/types-codec/types/interfaces";
-import {BatchCompleted, ItemCompleted, takeNestedBatchItemEvents} from "./types";
+import {BatchCompleted, ItemCompleted, takeCompletedBatchItemEvents} from "./types";
 
 const CompletionEvents = [BatchCompleted]
 const ItemEvents = [ItemCompleted]
@@ -48,7 +48,8 @@ export class BatchAllNode implements NestedCallNode {
         let visitedSubItems: VisitedCall[] = new Array(innerCalls.length)
         for (let i = innerCalls.length - 1; i >= 0; i--) {
             if (context.callSucceeded) {
-                const alNestedEvents = takeNestedBatchItemEvents(context, innerCalls[i])
+                context.eventQueue.popFromEnd(ItemCompleted);
+                const alNestedEvents = takeCompletedBatchItemEvents(context, innerCalls[i])
 
                 visitedSubItems[i] = {
                     call: innerCalls[i],

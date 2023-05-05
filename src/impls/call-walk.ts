@@ -8,8 +8,11 @@ import {CallBase} from "@polkadot/types/types/calls";
 import {AnyTuple} from "@polkadot/types-codec/types";
 import {Logger} from "pino"
 import {BatchAllNode} from "./nodes/batch/batchAll";
+import {ForceBatchNode} from "./nodes/batch/forceBatch";
 
-const DefaultKnownNodes: NestedCallNode[] = [new BatchNode(), new BatchAllNode()]
+const DefaultKnownNodes: NestedCallNode[] = [
+    new BatchNode(), new BatchAllNode(), new ForceBatchNode()
+]
 
 export function CreateCallWalk(
     nodes: NestedCallNode[] = DefaultKnownNodes,
