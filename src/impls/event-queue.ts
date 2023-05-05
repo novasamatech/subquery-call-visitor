@@ -43,11 +43,17 @@ class EventQueueImpl implements MutableEventQueue {
     }
 
     takeFromEnd(...eventTypes: IsEvent<AnyTuple, Object>[]): AnyEvent | undefined {
-        const [event, eventIndex] = this.findEventAndIndex(eventTypes)
+        const eventAndIndex = this.findEventAndIndex(eventTypes)
 
-        this.removeAllAfterInclusive(eventIndex)
+        if (eventAndIndex != undefined) {
+            const [event, eventIndex] = eventAndIndex
 
-        return event
+            this.removeAllAfterInclusive(eventIndex)
+
+            return event
+        } else {
+            return undefined
+        }
     }
 
     takeTail(...eventTypes: IsEvent<AnyTuple, Object>[]): AnyEvent[] {
