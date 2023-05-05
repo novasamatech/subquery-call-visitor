@@ -11,10 +11,12 @@ import {BatchAllNode} from "./nodes/batch/batchAll";
 import {ForceBatchNode} from "./nodes/batch/forceBatch";
 import {AsMultiNode} from "./nodes/multisig/asMulti";
 import {AsMultiThreshold1Node} from "./nodes/multisig/asMultiThreshold1";
+import {ProxyNode} from "./nodes/proxy/proxy";
 
-const DefaultKnownNodes: NestedCallNode[] = [
+export const DefaultKnownNodes: NestedCallNode[] = [
     new BatchNode(), new BatchAllNode(), new ForceBatchNode(),
-    new AsMultiNode(), new AsMultiThreshold1Node()
+    new AsMultiNode(), new AsMultiThreshold1Node(),
+    new ProxyNode()
 ]
 
 export function CreateCallWalk(

@@ -1,6 +1,6 @@
 import {AnyTuple} from "@polkadot/types-codec/types";
 import {IsEvent} from "@polkadot/types/metadata/decorate/types";
-import {EventQueue, MutableEventQueue} from "../interfaces";
+import {MutableEventQueue} from "../interfaces";
 import {IEvent} from "@polkadot/types/types";
 import {AnyEvent} from "../interfaces";
 
