@@ -26,13 +26,29 @@ export interface CallVisitorBuilder {
 
 export interface VisitedCall {
 
+    /**
+     * Call that is currently visiting
+     */
     call: CallBase<AnyTuple>
 
+    /**
+     * Whether call succeeded or not.
+     * Call is considered successful when it succeeds itself as well as its outer parents succeeds
+     */
     success: boolean
 
+    /**
+     * All events that are related to this specific call
+     */
     events: AnyEvent[]
 
+    /**
+     * Origin's address that this call has been dispatched with
+     */
     origin: string
 
+    /**
+     * Reference to root extrinsic
+     */
     extrinsic: SubstrateExtrinsic
 }
