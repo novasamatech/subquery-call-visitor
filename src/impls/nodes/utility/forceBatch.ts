@@ -31,7 +31,7 @@ export class ForceBatchNode implements NestedCallNode {
         endExclusive = indexOfCompletedEvent
 
         innerCalls.forEach((innerCall) => {
-            let [itemEvent, itemEventIdx] = context.eventQueue.peekItemFromEnd(CompletionEvents, endExclusive)
+            let [itemEvent, itemEventIdx] = context.eventQueue.peekItemFromEnd(ItemEvents, endExclusive)
 
             if (ItemCompleted.is(itemEvent)) {
                 // only completed items emit nested events
