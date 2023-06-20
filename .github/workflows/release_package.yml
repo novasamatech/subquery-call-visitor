@@ -1,10 +1,15 @@
 name: Release package
 on:
+  pull_request:
   workflow_dispatch:
     inputs:
       release-type:
         description: 'Release type (one of): patch, minor, major, prepatch, preminor, premajor, prerelease'
         required: true
+
+env:
+  release-type: patch
+
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -29,22 +34,22 @@ jobs:
       # Bump package version
       # Use tag latest
       - name: Bump release version
-        if: startsWith(github.event.inputs.release-type, 'pre') != true
+        if: startsWith(env.release-type, 'pre') != true
         run: |
           echo "NEW_VERSION=$(npm --no-git-tag-version version $RELEASE_TYPE)" >> $GITHUB_ENV
           echo "RELEASE_TAG=latest" >> $GITHUB_ENV
         env:
-          RELEASE_TYPE: ${{ github.event.inputs.release-type }}
+          RELEASE_TYPE: ${{ env.release-type }}
 
       # Bump package pre-release version
       # Use tag beta for pre-release versions
       - name: Bump pre-release version
-        if: startsWith(github.event.inputs.release-type, 'pre')
+        if: startsWith(env.release-type, 'pre')
         run: |
           echo "NEW_VERSION=$(npm --no-git-tag-version --preid=beta version $RELEASE_TYPE
           echo "RELEASE_TAG=beta" >> $GITHUB_ENV
         env:
-          RELEASE_TYPE: ${{ github.event.inputs.release-type }}
+          RELEASE_TYPE: ${{ env.release-type }}
       
       - name: Install dependency
         run: npm install
@@ -96,6 +101,6 @@ jobs:
         with:
           tag_name: ${{ env.NEW_VERSION }}
           body: ${{ steps.get-changelog.outputs.changelog }}
-          prerelease: ${{ startsWith(github.event.inputs.release-type, 'pre') }}
+          prerelease: ${{ startsWith(env.release-type, 'pre') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
