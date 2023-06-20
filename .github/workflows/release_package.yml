@@ -45,6 +45,12 @@ jobs:
           echo "RELEASE_TAG=beta" >> $GITHUB_ENV
         env:
           RELEASE_TYPE: ${{ github.event.inputs.release-type }}
+      
+      - name: Install dependency
+        run: npm install
+        
+      - name: Build
+        run: npm run build
 
       # Update changelog unreleased section with new version
       - name: Update changelog
