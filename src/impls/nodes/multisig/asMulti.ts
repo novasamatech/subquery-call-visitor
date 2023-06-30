@@ -4,10 +4,10 @@ import {AnyTuple} from "@polkadot/types-codec/types";
 import {IVec} from "@polkadot/types-codec/types/interfaces";
 import {AccountId} from "@polkadot/types/interfaces/runtime/types";
 import {INumber} from "@polkadot/types-codec/types/interfaces";
-import {generateMultisigAddress, MultisigApproval, MultisigExecuted} from "./common";
+import {generateMultisigAddress, MultisigApproval, MultisigExecuted, NewMultisig} from "./common";
 
 
-const CompletionEvents = [MultisigExecuted, MultisigApproval]
+const CompletionEvents = [MultisigExecuted, MultisigApproval, NewMultisig]
 
 export class AsMultiNode implements NestedCallNode {
 
