@@ -5,6 +5,7 @@ import {encodeMultiAddress, sortAddresses} from "@polkadot/util-crypto";
 
 export const MultisigExecuted = api.events.multisig.MultisigExecuted
 export const MultisigApproval = api.events.multisig.MultisigApproval
+export const NewMultisig = api.events.multisig.NewMultisig
 
 export function generateMultisigAddress(
     origin: string,
