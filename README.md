@@ -119,3 +119,7 @@ When you are done with development and want to switch back to remote version, ru
 ``` shell
 npm unlink /<path_to_visitor_package>
 ```
+
+## License
+SubQuery Call Visitor is available under the Apache 2.0 license. See the LICENSE file for more info.
+© Novasama Technologies GmbH 2023
