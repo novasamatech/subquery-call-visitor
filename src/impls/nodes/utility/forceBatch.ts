@@ -30,7 +30,8 @@ export class ForceBatchNode implements NestedCallNode {
         }
         endExclusive = indexOfCompletedEvent
 
-        innerCalls.forEach((innerCall) => {
+        for (let i = innerCalls.length - 1; i >= 0; i--) {
+            let innerCall = innerCalls[i]
             let [itemEvent, itemEventIdx] = context.eventQueue.peekItemFromEnd(ItemEvents, endExclusive)
 
             if (ItemCompleted.is(itemEvent)) {
@@ -39,7 +40,7 @@ export class ForceBatchNode implements NestedCallNode {
             } else {
                 endExclusive = itemEventIdx
             }
-        })
+        }
 
         return endExclusive
     }

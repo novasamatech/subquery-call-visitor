@@ -26,10 +26,11 @@ export class BatchAllNode implements NestedCallNode {
         endExclusive = indexOfCompletedEvent
 
         // bathAll completed means all calls have completed
-        innerCalls.forEach((innerCall) => {
+        for (let i = innerCalls.length - 1; i >= 0; i--) {
+            let innerCall = innerCalls[i]
             let itemIdx = context.eventQueue.indexOfLast(ItemEvents, endExclusive)
             endExclusive = context.endExclusiveToSkipInternalEvents(innerCall, itemIdx)
-        })
+        }
 
         return endExclusive
     }
