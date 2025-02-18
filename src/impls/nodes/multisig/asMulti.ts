@@ -5,6 +5,8 @@ import {IVec} from "@polkadot/types-codec/types/interfaces";
 import {AccountId} from "@polkadot/types/interfaces/runtime/types";
 import {INumber} from "@polkadot/types-codec/types/interfaces";
 import {generateMultisigAddress, MultisigApproval, MultisigExecuted, NewMultisig} from "./common";
+import { IEvent } from "@polkadot/types/types";
+import { DispatchResult } from "@polkadot/types/interfaces";
 
 
 const CompletionEvents = [MultisigExecuted, MultisigApproval, NewMultisig]
@@ -20,8 +22,9 @@ export class AsMultiNode implements NestedCallNode {
 
         const [completionEvent, completionIdx] = context.eventQueue.peekItemFromEnd(CompletionEvents, endExclusive)
         endExclusive = completionIdx
+        const result = this.getMultisigExecutedResult(completionEvent);
 
-        if (MultisigExecuted.is(completionEvent) && completionEvent.data.result.isOk) {
+        if (MultisigExecuted.is(completionEvent) && result.isOk) {
             const innerCall = this.extractInnerMultisigCall(call)
             endExclusive = context.endExclusiveToSkipInternalEvents(innerCall, endExclusive)
         }
@@ -39,7 +42,8 @@ export class AsMultiNode implements NestedCallNode {
         const completionEvent = context.eventQueue.takeFromEnd(...CompletionEvents)
 
         if (MultisigExecuted.is(completionEvent)) {
-            if (completionEvent.data.result.isOk) {
+            const result = this.getMultisigExecutedResult(completionEvent);
+            if (result.isOk) {
                 context.logger.info("asMulti - execution succeeded")
 
                 await this.visitSucceededMultisigCall(call, context)
@@ -87,5 +91,9 @@ export class AsMultiNode implements NestedCallNode {
             otherSignatories as IVec<AccountId>,
             (threshold as INumber).toNumber()
         )
+    }
+
+    getMultisigExecutedResult(event: IEvent<AnyTuple>): DispatchResult {
+        return event.data.result || event.data.at(4);
     }
 }
