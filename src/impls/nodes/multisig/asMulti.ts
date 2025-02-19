@@ -1,11 +1,10 @@
-import {EventCountingContext, NestedCallNode, VisitedCall, VisitingContext} from "../../../interfaces";
-import {CallBase} from "@polkadot/types/types/calls";
-import {AnyTuple} from "@polkadot/types-codec/types";
-import {IVec} from "@polkadot/types-codec/types/interfaces";
-import {AccountId} from "@polkadot/types/interfaces/runtime/types";
-import {INumber} from "@polkadot/types-codec/types/interfaces";
-import {generateMultisigAddress, MultisigApproval, MultisigExecuted, NewMultisig} from "./common";
-import { IEvent } from "@polkadot/types/types";
+import { AnyEvent, EventCountingContext, NestedCallNode, VisitedCall, VisitingContext } from "../../../interfaces";
+import { CallBase } from "@polkadot/types/types/calls";
+import { AnyTuple } from "@polkadot/types-codec/types";
+import { IVec } from "@polkadot/types-codec/types/interfaces";
+import { AccountId } from "@polkadot/types/interfaces/runtime/types";
+import { INumber } from "@polkadot/types-codec/types/interfaces";
+import { generateMultisigAddress, MultisigApproval, MultisigExecuted, NewMultisig } from "./common";
 import { DispatchResult } from "@polkadot/types/interfaces";
 
 
@@ -93,7 +92,8 @@ export class AsMultiNode implements NestedCallNode {
         )
     }
 
-    getMultisigExecutedResult(event: IEvent<AnyTuple>): DispatchResult {
+    getMultisigExecutedResult(event: AnyEvent): DispatchResult {
+        // @ts-expect-error Property 'result' does not exist on type 'AnyTuple & IEventData'
         return event.data.result || event.data.at(4);
     }
 }
