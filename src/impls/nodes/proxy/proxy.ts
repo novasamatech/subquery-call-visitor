@@ -1,8 +1,9 @@
-import {AnyEvent, EventCountingContext, NestedCallNode, VisitedCall, VisitingContext} from "../../../interfaces";
-import {CallBase} from "@polkadot/types/types/calls";
-import {AnyTuple} from "@polkadot/types-codec/types";
-import {Codec} from "@polkadot/types/types";
-import {Address} from "@polkadot/types/interfaces/runtime/types";
+import { AnyEvent, EventCountingContext, NestedCallNode, VisitedCall, VisitingContext } from "../../../interfaces";
+import { CallBase } from "@polkadot/types/types/calls";
+import { AnyTuple } from "@polkadot/types-codec/types";
+import { Codec } from "@polkadot/types/types";
+import { Address } from "@polkadot/types/interfaces/runtime/types";
+import { DispatchResult } from "@polkadot/types/interfaces";
 
 
 const ProxyExecuted = api.events.proxy.ProxyExecuted
@@ -21,8 +22,9 @@ export class ProxyNode implements NestedCallNode {
 
         const [completionEvent, completionIdx] = context.eventQueue.peekItemFromEnd(CompletionEvents, endExclusive)
         endExclusive = completionIdx
+        const result = this.getProxyExecutedResult(completionEvent);
 
-        if (ProxyExecuted.is(completionEvent) && completionEvent.data.result.isOk) {
+        if (ProxyExecuted.is(completionEvent) && result.isOk) {
             const [innerCall] = this.callAndOriginFromProxy(call)
             endExclusive = context.endExclusiveToSkipInternalEvents(innerCall, endExclusive)
         }
@@ -38,8 +40,9 @@ export class ProxyNode implements NestedCallNode {
         }
 
         const completionEvent = context.eventQueue.takeFromEnd(...CompletionEvents)
+        const result = this.getProxyExecutedResult(completionEvent);
 
-        if (ProxyExecuted.is(completionEvent) && completionEvent.data.result.isOk) {
+        if (ProxyExecuted.is(completionEvent) && result.isOk) {
             context.logger.info("proxy - execution succeeded")
 
             await this.visitSucceededProxyCall(call, context)
@@ -100,5 +103,10 @@ export class ProxyNode implements NestedCallNode {
         }
 
         return [proxiedCall as CallBase<AnyTuple>, (proxyOrigin as Address).toString()]
+    }
+
+    getProxyExecutedResult(event: AnyEvent): DispatchResult {
+        // @ts-expect-error Property 'result' does not exist on type 'AnyTuple & IEventData'
+        return event.data.result || event.data.at(0);
     }
 }

@@ -1,18 +1,18 @@
-import {EventCountingContext, NestedCallNode, VisitingContext} from "../interfaces";
-import {CallVisitor, CallWalk, VisitedCall} from "../interfaces";
-import {SubstrateExtrinsic} from "@subql/types";
-import {CreateEventQueue} from "./event-queue";
-import {EventQueue} from "../interfaces";
-import {CallBase} from "@polkadot/types/types/calls";
-import {AnyTuple} from "@polkadot/types-codec/types";
-import {Logger} from "pino"
-import {BatchAllNode} from "./nodes/utility/batchAll";
-import {ForceBatchNode} from "./nodes/utility/forceBatch";
-import {AsMultiNode} from "./nodes/multisig/asMulti";
-import {AsMultiThreshold1Node} from "./nodes/multisig/asMultiThreshold1";
-import {ProxyNode} from "./nodes/proxy/proxy";
-import {AsDerivativeNode} from "./nodes/utility/asDerivative";
-import {BatchNode} from "./nodes/utility/batch";
+import { EventCountingContext, NestedCallNode, VisitingContext } from "../interfaces";
+import { CallVisitor, CallWalk, VisitedCall } from "../interfaces";
+import { SubstrateExtrinsic } from "@subql/types";
+import { CreateEventQueue } from "./event-queue";
+import { EventQueue } from "../interfaces";
+import { CallBase } from "@polkadot/types/types/calls";
+import { AnyTuple } from "@polkadot/types-codec/types";
+import { Logger } from "pino"
+import { BatchAllNode } from "./nodes/utility/batchAll";
+import { ForceBatchNode } from "./nodes/utility/forceBatch";
+import { AsMultiNode } from "./nodes/multisig/asMulti";
+import { AsMultiThreshold1Node } from "./nodes/multisig/asMultiThreshold1";
+import { ProxyNode } from "./nodes/proxy/proxy";
+import { AsDerivativeNode } from "./nodes/utility/asDerivative";
+import { BatchNode } from "./nodes/utility/batch";
 
 export const DefaultKnownNodes: NestedCallNode[] = [
     new BatchNode(), new BatchAllNode(), new ForceBatchNode(), new AsDerivativeNode(),
@@ -22,6 +22,7 @@ export const DefaultKnownNodes: NestedCallNode[] = [
 
 export function CreateCallWalk(
     nodes: NestedCallNode[] = DefaultKnownNodes,
+    // @ts-expect-error Cannot find name 'logger'
     customLogger: Logger = logger
 ): CallWalk {
     return new CallWalkImpl(nodes, customLogger)

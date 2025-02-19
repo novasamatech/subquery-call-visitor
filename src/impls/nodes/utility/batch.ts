@@ -1,9 +1,9 @@
-import {AnyEvent, EventCountingContext, NestedCallNode, VisitingContext} from "../../../interfaces";
-import {VisitedCall} from "../../../interfaces";
-import {CallBase} from "@polkadot/types/types/calls";
-import {AnyTuple} from "@polkadot/types-codec/types";
-import {IVec} from "@polkadot/types-codec/types/interfaces";
-import {BatchCompleted, BatchInterrupted, ItemCompleted, takeCompletedBatchItemEvents} from "./types";
+import { AnyEvent, EventCountingContext, NestedCallNode, VisitingContext } from "../../../interfaces";
+import { VisitedCall } from "../../../interfaces";
+import { CallBase } from "@polkadot/types/types/calls";
+import { AnyTuple } from "@polkadot/types-codec/types";
+import { IVec } from "@polkadot/types-codec/types/interfaces";
+import { BatchCompleted, BatchInterrupted, ItemCompleted, takeCompletedBatchItemEvents } from "./types";
 
 const CompletionEvents = [BatchCompleted, BatchInterrupted]
 const ItemEvents = [ItemCompleted]
@@ -45,7 +45,7 @@ export class BatchNode implements NestedCallNode {
             context.logger.info(`Batch finished with ${completionEvent.method} outcome`)
 
             lastSuccessIndex = this.lastSucceedItemIndex(innerCalls, completionEvent)
-        } else  {
+        } else {
             context.logger.info(`Batch was reverted by the outer parent`)
 
             lastSuccessIndex = -1
@@ -92,6 +92,7 @@ export class BatchNode implements NestedCallNode {
         if (BatchCompleted.is(event)) {
             return innerCals.length
         } else if (BatchInterrupted.is(event)) {
+            // @ts-expect-error Property 'data' does not exist on type 'never'
             let [failedIndex] = event.data
 
             return failedIndex.toNumber()
