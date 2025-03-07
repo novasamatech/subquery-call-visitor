@@ -6,7 +6,7 @@ import { Address } from "@polkadot/types/interfaces/runtime/types";
 import { DispatchResult } from "@polkadot/types/interfaces";
 
 
-const ProxyExecuted = api.events.proxy.ProxyExecuted
+const ProxyExecuted = api.events.proxy?.ProxyExecuted
 const CompletionEvents = [ProxyExecuted]
 
 const calls = ["proxy", "proxyAnnounced"]
@@ -24,7 +24,7 @@ export class ProxyNode implements NestedCallNode {
         endExclusive = completionIdx
         const result = this.getProxyExecutedResult(completionEvent);
 
-        if (ProxyExecuted.is(completionEvent) && result.isOk) {
+        if (ProxyExecuted?.is(completionEvent) && result.isOk) {
             const [innerCall] = this.callAndOriginFromProxy(call)
             endExclusive = context.endExclusiveToSkipInternalEvents(innerCall, endExclusive)
         }
@@ -42,7 +42,7 @@ export class ProxyNode implements NestedCallNode {
         const completionEvent = context.eventQueue.takeFromEnd(...CompletionEvents)
         const result = this.getProxyExecutedResult(completionEvent);
 
-        if (ProxyExecuted.is(completionEvent) && result.isOk) {
+        if (ProxyExecuted?.is(completionEvent) && result.isOk) {
             context.logger.info("proxy - execution succeeded")
 
             await this.visitSucceededProxyCall(call, context)
