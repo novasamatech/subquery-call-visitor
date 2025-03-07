@@ -23,7 +23,7 @@ export class AsMultiNode implements NestedCallNode {
         endExclusive = completionIdx
         const result = this.getMultisigExecutedResult(completionEvent);
 
-        if (MultisigExecuted.is(completionEvent) && result.isOk) {
+        if (MultisigExecuted?.is(completionEvent) && result.isOk) {
             const innerCall = this.extractInnerMultisigCall(call)
             endExclusive = context.endExclusiveToSkipInternalEvents(innerCall, endExclusive)
         }
@@ -40,7 +40,7 @@ export class AsMultiNode implements NestedCallNode {
 
         const completionEvent = context.eventQueue.takeFromEnd(...CompletionEvents)
 
-        if (MultisigExecuted.is(completionEvent)) {
+        if (MultisigExecuted?.is(completionEvent)) {
             const result = this.getMultisigExecutedResult(completionEvent);
             if (result.isOk) {
                 context.logger.info("asMulti - execution succeeded")
