@@ -50,7 +50,7 @@ export interface EventCountingContext {
 
 export interface VisingLogger {
 
-    info(content: string)
+    info(content: string): void
 
-    warn(content: string)
+    warn(content: string): void
 }

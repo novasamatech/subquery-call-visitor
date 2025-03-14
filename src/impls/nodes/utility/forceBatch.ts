@@ -32,7 +32,10 @@ export class ForceBatchNode implements NestedCallNode {
 
         for (let i = innerCalls.length - 1; i >= 0; i--) {
             let innerCall = innerCalls[i]
-            let [itemEvent, itemEventIdx] = context.eventQueue.peekItemFromEnd(ItemEvents, endExclusive)
+            if (!innerCall) continue;
+            let item = context.eventQueue.peekItemFromEnd(ItemEvents, endExclusive)
+            if (!item) continue;
+            let [itemEvent, itemEventIdx] = item;
 
             if (ItemCompleted.is(itemEvent)) {
                 // only completed items emit nested events
@@ -62,15 +65,16 @@ export class ForceBatchNode implements NestedCallNode {
 
         for (let i = innerCalls.length - 1; i >= 0; i--) {
             const innerCall = innerCalls[i]
+            if (!innerCall) continue;
 
             if (context.callSucceeded) {
                 const itemCompletionEvent = context.eventQueue.takeFromEnd(...ItemEvents);
 
-                if (ItemCompleted.is(itemCompletionEvent)) {
+                if (itemCompletionEvent && ItemCompleted.is(itemCompletionEvent)) {
                     const allEvents = takeCompletedBatchItemEvents(context, innerCall)
 
                     visitedSubItems[i] = {
-                        call: innerCalls[i],
+                        call: innerCall,
                         success: true,
                         events: allEvents,
                         origin: context.origin,
@@ -82,7 +86,7 @@ export class ForceBatchNode implements NestedCallNode {
             }
 
             visitedSubItems[i] = {
-                call: innerCalls[i],
+                call: innerCall,
                 success: false,
                 events: [],
                 origin: context.origin,
@@ -92,6 +96,7 @@ export class ForceBatchNode implements NestedCallNode {
 
         for (let i = 0; i < visitedSubItems.length; i++) {
             const visitedCall = visitedSubItems[i]
+            if (!visitedCall) continue;
             let events = visitedCall.events.map((e) => e.method)
 
             context.logger.info(`ForceBatch - visiting batch item at ${i}, item events: ${events}`)

@@ -57,8 +57,6 @@ class CallWalkImpl implements CallWalk {
         visitedCall: VisitedCall,
         depth: number,
     ): Promise<void> {
-        let nestedNode = this.findNestedNode(visitedCall.call)
-
         let call = visitedCall.call
         let display = `${call.section}.${call.method}`
         let origin = visitedCall.origin
@@ -66,25 +64,28 @@ class CallWalkImpl implements CallWalk {
 
         await visitor.visit(visitedCall)
 
-        let eventQueue = CreateEventQueue(visitedCall.events);
+        let nestedNode = this.findNestedNode(visitedCall.call)
+        if (nestedNode) {
+            let eventQueue = CreateEventQueue(visitedCall.events);
 
-        let context: VisitingContext = {
-            visitor: visitor,
-            callSucceeded: visitedCall.success,
-            eventQueue: eventQueue,
-            origin: visitedCall.origin,
-            extrinsic: visitedCall.extrinsic,
-            nestedVisit: (visitedCall) => this.nestedVisit(visitor, visitedCall, depth + 1),
-            endExclusiveToSkipInternalEvents: (innerCall) => {
-                return this.endExclusiveToSkipInternalEvents(innerCall, eventQueue, visitedCall.events.length)
-            },
-            logger: {
-                warn: (content) => this.logWarn(content, depth),
-                info: (content) => this.logInfo(content, depth)
+            let context: VisitingContext = {
+                visitor: visitor,
+                callSucceeded: visitedCall.success,
+                eventQueue: eventQueue,
+                origin: visitedCall.origin,
+                extrinsic: visitedCall.extrinsic,
+                nestedVisit: (visitedCall) => this.nestedVisit(visitor, visitedCall, depth + 1),
+                endExclusiveToSkipInternalEvents: (innerCall) => {
+                    return this.endExclusiveToSkipInternalEvents(innerCall, eventQueue, visitedCall.events.length)
+                },
+                logger: {
+                    warn: (content) => this.logWarn(content, depth),
+                    info: (content) => this.logInfo(content, depth)
+                }
             }
-        }
 
-        await nestedNode.visit(visitedCall.call, context)
+            await nestedNode.visit(visitedCall.call, context)
+        }
     }
 
     private endExclusiveToSkipInternalEvents(

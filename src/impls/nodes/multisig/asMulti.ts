@@ -19,9 +19,12 @@ export class AsMultiNode implements NestedCallNode {
     endExclusiveToSkipInternalEvents(call: CallBase<AnyTuple>, context: EventCountingContext): number {
         let endExclusive = context.endExclusive
 
-        const [completionEvent, completionIdx] = context.eventQueue.peekItemFromEnd(CompletionEvents, endExclusive)
+        let completionItem = context.eventQueue.peekItemFromEnd(CompletionEvents, endExclusive);
+        if (!completionItem) return 0;
+
+        let [completionEvent, completionIdx] = completionItem
         endExclusive = completionIdx
-        const result = this.getMultisigExecutedResult(completionEvent);
+        let result = this.getMultisigExecutedResult(completionEvent);
 
         if (MultisigExecuted?.is(completionEvent) && result.isOk) {
             const innerCall = this.extractInnerMultisigCall(call)
@@ -40,7 +43,7 @@ export class AsMultiNode implements NestedCallNode {
 
         const completionEvent = context.eventQueue.takeFromEnd(...CompletionEvents)
 
-        if (MultisigExecuted?.is(completionEvent)) {
+        if (completionEvent && MultisigExecuted?.is(completionEvent)) {
             const result = this.getMultisigExecutedResult(completionEvent);
             if (result.isOk) {
                 context.logger.info("asMulti - execution succeeded")

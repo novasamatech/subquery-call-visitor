@@ -77,6 +77,7 @@ class EventQueueImpl implements MutableEventQueue {
 
         for (let i = limit - 1; i >= 0; i--) {
             const nextEvent = eventsQueue[i]
+            if (!nextEvent) continue;
 
             for (const isEvent of isEvents) {
                 if (isEvent.is(nextEvent)) {

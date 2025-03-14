@@ -7,13 +7,13 @@ export interface MutableEventQueue extends EventQueue {
     /**
      * Removes last event matching one of eventTypes
      */
-    popFromEnd(...eventTypes: IsEvent<AnyTuple, Object>[])
+    popFromEnd(...eventTypes: IsEvent<AnyTuple>[]): void
 
     /**
      * Takes and removes all events that go after last event matching one of eventTypes. If no matched event found,
      * all available events are returned
      */
-    takeTail(...eventTypes: IsEvent<AnyTuple, Object>[]): AnyEvent[]
+    takeTail(...eventTypes: IsEvent<AnyTuple>[]): AnyEvent[]
 
     /**
      * Takes and removes all events that go after specified inclusive index
@@ -24,14 +24,14 @@ export interface MutableEventQueue extends EventQueue {
     /**
      * Takes and removes last event matching one of eventTypes
      */
-    takeFromEnd(...eventTypes: IsEvent<AnyTuple, Object>[]): AnyEvent | undefined
+    takeFromEnd(...eventTypes: IsEvent<AnyTuple>[]): AnyEvent | undefined
 }
 
 export interface EventQueue {
 
     all(): AnyEvent[]
 
-    peekItemFromEnd(eventTypes: IsEvent<AnyTuple, Object>[], endExclusive: number): [AnyEvent, number] | undefined
+    peekItemFromEnd(eventTypes: IsEvent<AnyTuple>[], endExclusive: number): [AnyEvent, number] | undefined
 
-    indexOfLast(eventTypes: IsEvent<AnyTuple, Object>[], endExclusive: number): number | undefined
+    indexOfLast(eventTypes: IsEvent<AnyTuple>[], endExclusive: number): number | undefined
 }

@@ -34,7 +34,7 @@ export class AsDerivativeNode implements NestedCallNode {
 
     private async visitFailedCall(call: CallBase<AnyTuple>, context: VisitingContext): Promise<void> {
         const success = false
-        const events = []
+        const events: AnyEvent[] = []
 
         await this.visitInnerCall(call, context, success, events)
     }
