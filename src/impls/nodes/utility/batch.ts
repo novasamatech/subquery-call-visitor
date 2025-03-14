@@ -92,7 +92,6 @@ export class BatchNode implements NestedCallNode {
         if (BatchCompleted.is(event)) {
             return innerCals.length
         } else if (BatchInterrupted.is(event)) {
-            // @ts-expect-error Property 'data' does not exist on type 'never'
             let [failedIndex] = event.data
 
             return failedIndex.toNumber()
