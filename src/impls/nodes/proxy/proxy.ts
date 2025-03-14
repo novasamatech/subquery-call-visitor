@@ -20,9 +20,12 @@ export class ProxyNode implements NestedCallNode {
     endExclusiveToSkipInternalEvents(call: CallBase<AnyTuple>, context: EventCountingContext): number {
         let endExclusive = context.endExclusive
 
-        const [completionEvent, completionIdx] = context.eventQueue.peekItemFromEnd(CompletionEvents, endExclusive)
+        let completionItem = context.eventQueue.peekItemFromEnd(CompletionEvents, endExclusive)
+        if (!completionItem) return 0;
+
+        let [completionEvent, completionIdx] = completionItem
         endExclusive = completionIdx
-        const result = this.getProxyExecutedResult(completionEvent);
+        let result = this.getProxyExecutedResult(completionEvent);
 
         if (ProxyExecuted?.is(completionEvent) && result.isOk) {
             const [innerCall] = this.callAndOriginFromProxy(call)
@@ -40,6 +43,8 @@ export class ProxyNode implements NestedCallNode {
         }
 
         const completionEvent = context.eventQueue.takeFromEnd(...CompletionEvents)
+        if (!completionEvent) return;
+
         const result = this.getProxyExecutedResult(completionEvent);
 
         if (ProxyExecuted?.is(completionEvent) && result.isOk) {
@@ -55,7 +60,7 @@ export class ProxyNode implements NestedCallNode {
 
     async visitFailedProxyCall(call: CallBase<AnyTuple>, context: VisitingContext): Promise<void> {
         const success = false
-        const events = []
+        const events: AnyEvent[] = []
 
         await this.visitProxyCall(call, context, success, events)
     }
@@ -92,11 +97,15 @@ export class ProxyNode implements NestedCallNode {
 
         if (proxyCall.method == "proxy") {
             // args = [real, force_proxy_type, call]
+            // @ts-expect-error
             proxyOrigin = proxyCall.args[0]
+            // @ts-expect-error
             proxiedCall = proxyCall.args[2]
         } else if (proxyCall.method == "proxyAnnounced") {
             // args = [delegate, real, force_proxy_type, call]
+            // @ts-expect-error
             proxyOrigin = proxyCall.args[1]
+            // @ts-expect-error
             proxiedCall = proxyCall.args[3]
         } else {
             throw Error(`Invalid state - unknown proxy method: ${proxyCall.method}`)

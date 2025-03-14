@@ -28,7 +28,9 @@ export class BatchAllNode implements NestedCallNode {
         // bathAll completed means all calls have completed
         for (let i = innerCalls.length - 1; i >= 0; i--) {
             let innerCall = innerCalls[i]
+            if (!innerCall) continue;
             let itemIdx = context.eventQueue.indexOfLast(ItemEvents, endExclusive)
+            if (typeof itemIdx === 'undefined') continue;
             endExclusive = context.endExclusiveToSkipInternalEvents(innerCall, itemIdx)
         }
 
@@ -48,12 +50,14 @@ export class BatchAllNode implements NestedCallNode {
 
         let visitedSubItems: VisitedCall[] = new Array(innerCalls.length)
         for (let i = innerCalls.length - 1; i >= 0; i--) {
+            let innerCall = innerCalls[i]
+            if (!innerCall) continue;
             if (context.callSucceeded) {
                 context.eventQueue.popFromEnd(ItemCompleted);
-                const alNestedEvents = takeCompletedBatchItemEvents(context, innerCalls[i])
+                const alNestedEvents = takeCompletedBatchItemEvents(context, innerCall)
 
                 visitedSubItems[i] = {
-                    call: innerCalls[i],
+                    call: innerCall,
                     success: true,
                     events: alNestedEvents,
                     origin: context.origin,
@@ -61,7 +65,7 @@ export class BatchAllNode implements NestedCallNode {
                 }
             } else {
                 visitedSubItems[i] = {
-                    call: innerCalls[i],
+                    call: innerCall,
                     success: false,
                     events: [],
                     origin: context.origin,
@@ -72,6 +76,7 @@ export class BatchAllNode implements NestedCallNode {
 
         for (let i = 0; i < visitedSubItems.length; i++) {
             const visitedCall = visitedSubItems[i]
+            if (!visitedCall) continue;
             let events = visitedCall.events.map((e) => e.method)
 
             context.logger.info(`BatchAll - visiting batch item at ${i}, item events: ${events}`)

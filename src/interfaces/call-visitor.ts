@@ -13,11 +13,11 @@ export interface CallVisitor {
     visit(call: VisitedCall): Promise<void>
 }
 
-export type CallHandler = (VisitedCall) => Promise<void>
+export type CallHandler = (call: VisitedCall) => Promise<void>
 
 export interface CallVisitorBuilder {
 
-    on(module: string, call: string, handler: (VisitedCall) => Promise<void>): CallVisitorBuilder
+    on(module: string, call: string, handler: (call: VisitedCall) => Promise<void>): CallVisitorBuilder
 
     ignoreFailedCalls(ignore: boolean): CallVisitorBuilder
 
