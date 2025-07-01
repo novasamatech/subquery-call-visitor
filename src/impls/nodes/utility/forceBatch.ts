@@ -37,7 +37,7 @@ export class ForceBatchNode implements NestedCallNode {
             if (!item) continue;
             let [itemEvent, itemEventIdx] = item;
 
-            if (ItemCompleted.is(itemEvent)) {
+            if (ItemCompleted?.is(itemEvent)) {
                 // only completed items emit nested events
                 endExclusive = context.endExclusiveToSkipInternalEvents(innerCall, itemEventIdx)
             } else {

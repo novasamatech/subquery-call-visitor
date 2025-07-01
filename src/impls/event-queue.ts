@@ -80,7 +80,7 @@ class EventQueueImpl implements MutableEventQueue {
             if (!nextEvent) continue;
 
             for (const isEvent of isEvents) {
-                if (isEvent.is(nextEvent)) {
+                if (isEvent?.is(nextEvent)) {
                     return [nextEvent, i]
                 }
             }

@@ -99,9 +99,9 @@ export class BatchNode implements NestedCallNode {
     }
 
     private numberOfSucceedItems(innerCals: CallBase<AnyTuple>[], event: AnyEvent): number {
-        if (BatchCompleted.is(event)) {
+        if (BatchCompleted?.is(event)) {
             return innerCals.length
-        } else if (BatchInterrupted.is(event)) {
+        } else if (BatchInterrupted?.is(event)) {
             let [failedIndex] = event.data
 
             return failedIndex.toNumber()
