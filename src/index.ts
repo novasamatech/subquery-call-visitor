@@ -1,3 +1,3 @@
-import "@polkadot/api-augment";
-export * from "./interfaces"
-export * from "./impls"
+import '@polkadot/api-augment';
+export * from './interfaces';
+export * from './impls';
