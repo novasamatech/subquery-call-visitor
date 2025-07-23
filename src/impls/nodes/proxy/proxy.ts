@@ -1,4 +1,4 @@
-import { AnyEvent, EventCountingContext, NestedCallNode, VisitedCall, VisitingContext } from '../../../interfaces';
+import { AnyEvent, EventCountingContext, NestedCallNode, VisitedCall, NodeContext } from '../../../interfaces';
 import { CallBase } from '@polkadot/types/types/calls';
 import { AnyTuple } from '@polkadot/types-codec/types';
 import { Codec } from '@polkadot/types/types';
@@ -33,7 +33,7 @@ export class ProxyNode implements NestedCallNode {
     return endExclusive;
   }
 
-  async visit(call: CallBase<AnyTuple>, context: VisitingContext): Promise<void> {
+  async visit(call: CallBase<AnyTuple>, context: NodeContext): Promise<void> {
     if (!context.callSucceeded) {
       await this.visitFailedProxyCall(call, context);
       context.logger.info('proxy - reverted by outer parent');
@@ -56,21 +56,21 @@ export class ProxyNode implements NestedCallNode {
     }
   }
 
-  async visitFailedProxyCall(call: CallBase<AnyTuple>, context: VisitingContext): Promise<void> {
+  async visitFailedProxyCall(call: CallBase<AnyTuple>, context: NodeContext): Promise<void> {
     const success = false;
     const events: AnyEvent[] = [];
 
     await this.visitProxyCall(call, context, success, events);
   }
 
-  async visitSucceededProxyCall(call: CallBase<AnyTuple>, context: VisitingContext): Promise<void> {
+  async visitSucceededProxyCall(call: CallBase<AnyTuple>, context: NodeContext): Promise<void> {
     const success = true;
     const events = context.eventQueue.all();
 
     await this.visitProxyCall(call, context, success, events);
   }
 
-  async visitProxyCall(call: CallBase<AnyTuple>, context: VisitingContext, success: boolean, events: AnyEvent[]) {
+  async visitProxyCall(call: CallBase<AnyTuple>, context: NodeContext, success: boolean, events: AnyEvent[]) {
     let [innerCall, innerOrigin] = this.callAndOriginFromProxy(call);
 
     const visitedCall: VisitedCall = {

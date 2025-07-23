@@ -1,4 +1,4 @@
-import { EventCountingContext, NestedCallNode, VisitedCall, VisitingContext } from '../../../interfaces';
+import { EventCountingContext, NestedCallNode, VisitedCall, NodeContext } from '../../../interfaces';
 import { CallBase } from '@polkadot/types/types/calls';
 import { AnyTuple } from '@polkadot/types-codec/types';
 import { IVec } from '@polkadot/types-codec/types/interfaces';
@@ -20,7 +20,7 @@ export class AsMultiThreshold1Node implements NestedCallNode {
     return endExclusive;
   }
 
-  async visit(call: CallBase<AnyTuple>, context: VisitingContext): Promise<void> {
+  async visit(call: CallBase<AnyTuple>, context: NodeContext): Promise<void> {
     if (!context.callSucceeded) {
       await this.visitFailedMultisigCall(call, context);
       context.logger.info('Multisig - failed or reverted by outer parent');
@@ -32,7 +32,7 @@ export class AsMultiThreshold1Node implements NestedCallNode {
     await this.visitSucceededMultisigCall(call, context);
   }
 
-  private async visitFailedMultisigCall(call: CallBase<AnyTuple>, context: VisitingContext): Promise<void> {
+  private async visitFailedMultisigCall(call: CallBase<AnyTuple>, context: NodeContext): Promise<void> {
     const visitedCall: VisitedCall = {
       success: false,
       origin: this.extractMultisigOrigin(call, context.origin),
@@ -44,7 +44,7 @@ export class AsMultiThreshold1Node implements NestedCallNode {
     await context.nestedVisit(visitedCall);
   }
 
-  private async visitSucceededMultisigCall(call: CallBase<AnyTuple>, context: VisitingContext): Promise<void> {
+  private async visitSucceededMultisigCall(call: CallBase<AnyTuple>, context: NodeContext): Promise<void> {
     const visitedCall: VisitedCall = {
       success: true,
       origin: this.extractMultisigOrigin(call, context.origin),
