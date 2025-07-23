@@ -7,14 +7,19 @@ export interface CallWalk {
   walk(source: SubstrateExtrinsic, visitor: CallVisitor): Promise<void>;
 }
 
-export interface CallVisitor {
-  visit(call: VisitedCall): Promise<void>;
+export interface VisitorContext {
+  stopped: boolean;
+  stop(): void;
 }
 
-export type CallHandler = (call: VisitedCall) => Promise<void>;
+export type CallHandler = (call: VisitedCall, context: VisitorContext) => void | Promise<void>;
+
+export interface CallVisitor {
+  visit: CallHandler;
+}
 
 export interface CallVisitorBuilder {
-  on(module: string, call: string, handler: CallHandler): CallVisitorBuilder;
+  on(module: string, calls: string | string[], handler: CallHandler): CallVisitorBuilder;
   ignoreFailedCalls(ignore: boolean): CallVisitorBuilder;
   build(): CallVisitor;
 }

@@ -6,5 +6,5 @@ export { BatchAllNode } from './nodes/utility/batchAll';
 export { ForceBatchNode } from './nodes/utility/forceBatch';
 export { AsDerivativeNode } from './nodes/utility/asDerivative';
 
-export * from './call-visitor';
-export * from './call-walk';
+export { CreateCallVisitorBuilder } from './call-visitor';
+export { CreateCallWalk, DefaultKnownNodes } from './call-walk';

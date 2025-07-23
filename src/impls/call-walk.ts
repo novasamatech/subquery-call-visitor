@@ -1,4 +1,4 @@
-import { EventCountingContext, NestedCallNode, VisitingContext } from '../interfaces';
+import { EventCountingContext, NestedCallNode, NodeContext, VisitorContext } from '../interfaces';
 import { CallVisitor, CallWalk, VisitedCall } from '../interfaces';
 import { SubstrateExtrinsic } from '@subql/types';
 import { CreateEventQueue } from './event-queue';
@@ -58,13 +58,24 @@ class CallWalkImpl implements CallWalk {
     let origin = visitedCall.origin;
     this.logInfo(`Visiting node: ${display}, success: ${visitedCall.success}, origin: ${origin}`, depth + 1);
 
-    await visitor.visit(visitedCall);
+    let visitorContext: VisitorContext = {
+      stopped: false,
+      stop: () => {
+        visitorContext.stopped = true;
+      },
+    };
+
+    await visitor.visit(visitedCall, visitorContext);
+
+    if (visitorContext.stopped) {
+      this.logInfo(`Visiting node ${display} has been stopped, origin: ${origin}`, depth + 1);
+      return;
+    }
 
     let nestedNode = this.findNestedNode(visitedCall.call);
     if (nestedNode) {
       let eventQueue = CreateEventQueue(visitedCall.events);
-
-      let context: VisitingContext = {
+      let nodeContext: NodeContext = {
         visitor: visitor,
         callSucceeded: visitedCall.success,
         eventQueue: eventQueue,
@@ -80,7 +91,7 @@ class CallWalkImpl implements CallWalk {
         },
       };
 
-      await nestedNode.visit(visitedCall.call, context);
+      await nestedNode.visit(visitedCall.call, nodeContext);
     }
   }
 

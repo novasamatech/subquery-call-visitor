@@ -1,4 +1,4 @@
-import { VisitingContext } from '../../../interfaces';
+import { NodeContext } from '../../../interfaces';
 import { CallBase } from '@polkadot/types/types/calls';
 import { AnyTuple } from '@polkadot/types-codec/types';
 
@@ -8,7 +8,7 @@ export const BatchInterrupted = api.events.utility?.BatchInterrupted;
 export const ItemCompleted = api.events.utility?.ItemCompleted;
 export const ItemFailed = api.events.utility?.ItemFailed;
 
-export function takeCompletedBatchItemEvents(context: VisitingContext, call: CallBase<AnyTuple>) {
+export function takeCompletedBatchItemEvents(context: NodeContext, call: CallBase<AnyTuple>) {
   const internalEventsEndExclusive = context.endExclusiveToSkipInternalEvents(call);
 
   // internalEnd is exclusive => it holds index of last internal event

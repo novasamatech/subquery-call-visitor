@@ -1,4 +1,4 @@
-import { AnyEvent, EventCountingContext, NestedCallNode, VisitingContext } from '../../../interfaces';
+import { AnyEvent, EventCountingContext, NestedCallNode, NodeContext } from '../../../interfaces';
 import { VisitedCall } from '../../../interfaces';
 import { CallBase } from '@polkadot/types/types/calls';
 import { AnyTuple } from '@polkadot/types-codec/types';
@@ -36,7 +36,7 @@ export class BatchNode implements NestedCallNode {
     return endExclusive;
   }
 
-  async visit(call: CallBase<AnyTuple>, context: VisitingContext): Promise<void> {
+  async visit(call: CallBase<AnyTuple>, context: NodeContext): Promise<void> {
     let innerCalls = call.args[0] as IVec<CallBase<AnyTuple>>;
 
     context.logger.info(`Visiting utility.batch with ${innerCalls.length} inner calls`);
@@ -91,7 +91,7 @@ export class BatchNode implements NestedCallNode {
       if (!visitedCall) continue;
       let events = visitedCall.events.map(e => e.method);
 
-      context.logger.info(`Batch - visiting batch item at ${i}, item events: ${events}`);
+      context.logger.info(`Batch - visiting batch item at ${i}, item events: ${events.length}`);
 
       await context.nestedVisit(visitedCall);
     }

@@ -16,10 +16,10 @@ export interface NestedCallNode {
    */
   endExclusiveToSkipInternalEvents(call: CallBase<AnyTuple>, context: EventCountingContext): number;
 
-  visit(call: CallBase<AnyTuple>, context: VisitingContext): Promise<void>;
+  visit(call: CallBase<AnyTuple>, context: NodeContext): Promise<void>;
 }
 
-export interface VisitingContext {
+export interface NodeContext {
   origin: string;
 
   callSucceeded: boolean;

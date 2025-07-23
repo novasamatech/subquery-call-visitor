@@ -1,4 +1,4 @@
-import { AnyEvent, EventCountingContext, NestedCallNode, VisitedCall, VisitingContext } from '../../../interfaces';
+import { AnyEvent, EventCountingContext, NestedCallNode, VisitedCall, NodeContext } from '../../../interfaces';
 import { CallBase } from '@polkadot/types/types/calls';
 import { AnyTuple } from '@polkadot/types-codec/types';
 import { INumber } from '@polkadot/types-codec/types/interfaces';
@@ -19,7 +19,7 @@ export class AsDerivativeNode implements NestedCallNode {
     return endExclusive;
   }
 
-  async visit(call: CallBase<AnyTuple>, context: VisitingContext): Promise<void> {
+  async visit(call: CallBase<AnyTuple>, context: NodeContext): Promise<void> {
     if (!context.callSucceeded) {
       await this.visitFailedCall(call, context);
       context.logger.info('AsDerivative - failed or reverted by outer parent');
@@ -31,14 +31,14 @@ export class AsDerivativeNode implements NestedCallNode {
     await this.visitSucceededCall(call, context);
   }
 
-  private async visitFailedCall(call: CallBase<AnyTuple>, context: VisitingContext): Promise<void> {
+  private async visitFailedCall(call: CallBase<AnyTuple>, context: NodeContext): Promise<void> {
     const success = false;
     const events: AnyEvent[] = [];
 
     await this.visitInnerCall(call, context, success, events);
   }
 
-  private async visitSucceededCall(call: CallBase<AnyTuple>, context: VisitingContext): Promise<void> {
+  private async visitSucceededCall(call: CallBase<AnyTuple>, context: NodeContext): Promise<void> {
     const success = true;
     const events = context.eventQueue.all();
 
@@ -47,7 +47,7 @@ export class AsDerivativeNode implements NestedCallNode {
 
   private async visitInnerCall(
     call: CallBase<AnyTuple>,
-    context: VisitingContext,
+    context: NodeContext,
     success: boolean,
     events: AnyEvent[],
   ): Promise<void> {
