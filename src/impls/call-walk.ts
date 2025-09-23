@@ -24,7 +24,7 @@ export const DefaultKnownNodes: NestedCallNode[] = [
   new ProxyNode(),
 ];
 
-export function CreateCallWalk(nodes: NestedCallNode[] = DefaultKnownNodes, customLogger: Logger = logger): CallWalk {
+export function CreateCallWalk(nodes: NestedCallNode[] = DefaultKnownNodes, customLogger?: Logger): CallWalk {
   return new CallWalkImpl(nodes, customLogger);
 }
 
@@ -33,9 +33,12 @@ class CallWalkImpl implements CallWalk {
 
   private readonly logger: Logger;
 
-  constructor(knownNodes: NestedCallNode[], logger: Logger) {
+  constructor(knownNodes: NestedCallNode[], logger?: Logger) {
     this.knowNodes = knownNodes;
-    this.logger = logger;
+    this.logger = logger || {
+      info: () => {},
+      warn: () => {},
+    } as any;
   }
 
   async walk(source: SubstrateExtrinsic, visitor: CallVisitor): Promise<void> {

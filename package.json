@@ -24,6 +24,7 @@
     "@polkadot/util-crypto": "^13.5.3",
     "@subql/cli": "latest",
     "@subql/types": "latest",
+    "@types/jest": "^29.3.1",
     "jest": "^29.3.1",
     "ts-jest": "^29.0.3",
     "tslib": "2.8.1",
