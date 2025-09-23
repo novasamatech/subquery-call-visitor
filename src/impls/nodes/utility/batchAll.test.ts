@@ -1,12 +1,11 @@
 import { describe, test, beforeEach, expect } from '@jest/globals';
 import { BatchAllNode } from './batchAll';
 import { BatchNode } from './batch';
-import { TestWalk } from '../../../test-utils/test-walk';
-import { MockHelpers } from '../../../test-utils/mock-helpers';
-import { TestAssertions } from '../../../test-utils/test-assertions';
+import { TestWalk, MockHelpers, TestAssertions } from '../../../test-utils';
 import { CallBase } from '@polkadot/types/types/calls';
 import { AnyTuple } from '@polkadot/types-codec/types';
 import { AnyEvent } from '../../../interfaces';
+import { setItemEventsPresent } from '../../../test-utils/setup';
 
 describe('BatchAllWalkTest', () => {
   let testWalk: TestWalk;
@@ -20,6 +19,7 @@ describe('BatchAllWalkTest', () => {
     utilityEvents = MockHelpers.createUtilityEvents();
     testEvent = MockHelpers.createTestEvent();
     testInnerCall = MockHelpers.createTestCall();
+    setItemEventsPresent(true)
   });
 
   function createBatchCall(...innerCalls: CallBase<AnyTuple>[]): CallBase<AnyTuple> {
@@ -42,8 +42,8 @@ describe('BatchAllWalkTest', () => {
     return utilityEvents.ExtrinsicFailed;
   }
 
-  function batchInterrupted(): AnyEvent {
-    return utilityEvents.BatchInterrupted;
+  function batchInterrupted(index: number): AnyEvent {
+    return utilityEvents.BatchInterrupted(index);
   }
 
   test('shouldVisitSucceededSingleBatchedCall', async () => {
@@ -194,15 +194,15 @@ describe('BatchAllWalkTest', () => {
     });
   });
 
-  // https://westend.subscan.io/extrinsic/6624751-2
-  test('shouldHandleRealWorldNestedBatchWithBatchInterrupted', async () => {
+  // Based on https://westend.subscan.io/extrinsic/6624751-2
+  test('should handle not defined ItemCompleted', async () => {
+    setItemEventsPresent(false)
+
     const realWorldTestWalk = new TestWalk([new BatchNode(), new BatchAllNode()]);
 
     const events = [
+      batchInterrupted(0),
       batchCompleted(),
-      batchCompleted(),
-      batchCompleted(),
-      batchInterrupted(),
       extrinsicFailed()
     ];
 
@@ -210,12 +210,8 @@ describe('BatchAllWalkTest', () => {
       signer,
       call: MockHelpers.createBatchAllCall([
         MockHelpers.createBatchCall([
-          MockHelpers.createBatchCall([
-            MockHelpers.createBatchCall([
-              MockHelpers.createBatchAllCall([
-                testInnerCall,
-              ])
-            ])
+          MockHelpers.createBatchAllCall([
+            testInnerCall,
           ])
         ])
       ]),

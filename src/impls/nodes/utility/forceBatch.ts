@@ -11,8 +11,13 @@ import {
   takeCompletedBatchItemEvents,
 } from './types';
 
-const CompletionEvents = [BatchCompleted, BatchCompletedWithErrors];
-const ItemEvents = [ItemCompleted, ItemFailed];
+function CompletionEvents() {
+  return [BatchCompleted(), BatchCompletedWithErrors()]
+}
+
+function ItemEvents(){
+  return [ItemCompleted(), ItemFailed()];
+}
 
 export class ForceBatchNode implements NestedCallNode {
   canVisit(call: CallBase<AnyTuple>): boolean {
@@ -23,20 +28,19 @@ export class ForceBatchNode implements NestedCallNode {
     const innerCalls = call.args[0] as IVec<CallBase<AnyTuple>>;
     let endExclusive = context.endExclusive;
 
-    const indexOfCompletedEvent = context.eventQueue.indexOfLast(CompletionEvents, endExclusive);
+    const indexOfCompletedEvent = context.eventQueue.indexOfLast(CompletionEvents(), endExclusive);
     if (indexOfCompletedEvent == undefined) {
       throw Error('endExclusiveToSkipInternalEvents called for reverted forceBatch');
     }
     endExclusive = indexOfCompletedEvent;
 
     for (let i = innerCalls.length - 1; i >= 0; i--) {
-      let innerCall = innerCalls[i];
-      if (!innerCall) continue;
-      let item = context.eventQueue.peekItemFromEnd(ItemEvents, endExclusive);
+      let innerCall = innerCalls[i]!;
+      let item = context.eventQueue.peekItemFromEnd(ItemEvents(), endExclusive);
       if (!item) continue;
       let [itemEvent, itemEventIdx] = item;
 
-      if (ItemCompleted?.is(itemEvent)) {
+      if (ItemCompleted()?.is(itemEvent)) {
         // only completed items emit nested events
         endExclusive = context.endExclusiveToSkipInternalEvents(innerCall, itemEventIdx);
       } else {
@@ -55,7 +59,7 @@ export class ForceBatchNode implements NestedCallNode {
     if (context.callSucceeded) {
       context.logger.info(`ForceBatch succeeded`);
 
-      context.eventQueue.popFromEnd(...CompletionEvents);
+      context.eventQueue.popFromEnd(...CompletionEvents());
     } else {
       context.logger.info(`ForceBatch reverted`);
     }
@@ -67,9 +71,9 @@ export class ForceBatchNode implements NestedCallNode {
       if (!innerCall) continue;
 
       if (context.callSucceeded) {
-        const itemCompletionEvent = context.eventQueue.takeFromEnd(...ItemEvents);
+        const itemCompletionEvent = context.eventQueue.takeFromEnd(...ItemEvents());
 
-        if (itemCompletionEvent && ItemCompleted.is(itemCompletionEvent)) {
+        if (itemCompletionEvent && ItemCompleted().is(itemCompletionEvent)) {
           const allEvents = takeCompletedBatchItemEvents(context, innerCall);
 
           visitedSubItems[i] = {

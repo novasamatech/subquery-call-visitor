@@ -86,7 +86,7 @@ class CallWalkImpl implements CallWalk {
         extrinsic: visitedCall.extrinsic,
         nestedVisit: visitedCall => this.nestedVisit(visitor, visitedCall, depth + 1),
         endExclusiveToSkipInternalEvents: innerCall => {
-          return this.endExclusiveToSkipInternalEvents(innerCall, eventQueue, visitedCall.events.length);
+          return this.endExclusiveToSkipInternalEvents(innerCall, eventQueue, eventQueue.all().length);
         },
         logger: {
           warn: content => this.logWarn(content, depth),

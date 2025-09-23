@@ -95,10 +95,10 @@ export class MockHelpers {
         section: 'utility',
         method: 'BatchCompleted'
       }),
-      BatchInterrupted: MockHelpers.createMockEvent({
+      BatchInterrupted: (index: number) => MockHelpers.createMockEvent({
         section: 'utility',
         method: 'BatchInterrupted',
-        args: [{ toNumber: () => 1 }] // Mock failed index
+        args: [{ toNumber: () => index }] // Mock failed index
       }),
       ItemFailed: MockHelpers.createMockEvent({
         section: 'utility',
@@ -119,6 +119,8 @@ export class MockHelpers {
     return {
       ItemCompleted: MockHelpers.createMockEventType('utility', 'ItemCompleted'),
       BatchCompleted: MockHelpers.createMockEventType('utility', 'BatchCompleted'),
+      BatchCompletedWithErrors: MockHelpers.createMockEventType('utility', 'BatchCompletedWithErrors'),
+      BatchInterrupted: MockHelpers.createMockEventType('utility', 'BatchInterrupted'),
       ItemFailed: MockHelpers.createMockEventType('utility', 'ItemFailed'),
       ExtrinsicSuccess: MockHelpers.createMockEventType('system', 'ExtrinsicSuccess'),
       ExtrinsicFailed: MockHelpers.createMockEventType('system', 'ExtrinsicFailed')

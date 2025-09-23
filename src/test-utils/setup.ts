@@ -7,10 +7,22 @@ const utilityEventTypes = MockHelpers.createUtilityEventTypes();
   events: {
     utility: {
       BatchCompleted: utilityEventTypes.BatchCompleted,
-      BatchCompletedWithErrors: utilityEventTypes.BatchCompleted,
-      BatchInterrupted: utilityEventTypes.BatchCompleted,
+      BatchCompletedWithErrors: utilityEventTypes.BatchCompletedWithErrors,
+      BatchInterrupted: utilityEventTypes.BatchInterrupted,
       ItemCompleted: utilityEventTypes.ItemCompleted,
       ItemFailed: utilityEventTypes.ItemFailed
     }
   }
 };
+
+export function setItemEventsPresent(present: boolean) {
+  const utilityObj = (global as any).api.events.utility;
+
+  if (present) {
+    utilityObj.ItemCompleted = utilityEventTypes.ItemCompleted
+    utilityObj.ItemFailed = utilityEventTypes.ItemFailed
+  } else {
+    utilityObj.ItemCompleted = undefined
+    utilityObj.ItemFailed = undefined
+  }
+}
