@@ -1,7 +1,6 @@
 import { NodeContext } from '../../../interfaces';
 import { CallBase } from '@polkadot/types/types/calls';
 import { AnyTuple } from '@polkadot/types-codec/types';
-import { ensure } from '../../../utils';
 
 export function BatchCompleted(){
   return api.events.utility?.BatchCompleted;
@@ -30,12 +29,4 @@ export function takeCompletedBatchItemEvents(context: NodeContext, call: CallBas
   const remainingNestedEvents = context.eventQueue.takeTail(ItemCompleted(), ItemFailed());
 
   return [...remainingNestedEvents, ...someOfNestedEvents];
-}
-
-export function requireItemCompleted() {
- return ensure(ItemCompleted(), "ItemCompleted is not defined");
-}
-
-export function requireItemFailed() {
-  return ensure(ItemFailed(), "ItemFailed is not defined");
 }
