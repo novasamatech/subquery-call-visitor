@@ -3,10 +3,10 @@ import { VisitedCall } from '../../../interfaces';
 import { CallBase } from '@polkadot/types/types/calls';
 import { AnyTuple } from '@polkadot/types-codec/types';
 import { IVec } from '@polkadot/types-codec/types/interfaces';
-import { BatchCompleted, ItemCompleted, takeCompletedBatchItemEvents } from './types';
+import { BatchCompleted, BatchCompletedWithErrors, ItemCompleted, ItemFailed, takeCompletedBatchItemEvents } from './types';
 
-const CompletionEvents = [BatchCompleted];
-const ItemEvents = [ItemCompleted];
+const CompletionEvents = [BatchCompleted, BatchCompletedWithErrors];
+const ItemEvents = [ItemCompleted, ItemFailed];
 
 export class BatchAllNode implements NestedCallNode {
   canVisit(call: CallBase<AnyTuple>): boolean {
@@ -24,7 +24,7 @@ export class BatchAllNode implements NestedCallNode {
     }
     endExclusive = indexOfCompletedEvent;
 
-    // bathAll completed means all calls have completed
+    // batchAll completed means all calls have completed (either successfully or with errors)
     for (let i = innerCalls.length - 1; i >= 0; i--) {
       let innerCall = innerCalls[i];
       if (!innerCall) continue;
@@ -48,21 +48,37 @@ export class BatchAllNode implements NestedCallNode {
     }
 
     let visitedSubItems: VisitedCall[] = new Array(innerCalls.length);
-    for (let i = innerCalls.length - 1; i >= 0; i--) {
-      let innerCall = innerCalls[i];
-      if (!innerCall) continue;
-      if (context.callSucceeded) {
-        context.eventQueue.popFromEnd(ItemCompleted);
+
+    if (context.callSucceeded) {
+      // Process items in reverse order to match event order
+      for (let i = innerCalls.length - 1; i >= 0; i--) {
+        let innerCall = innerCalls[i];
+        if (!innerCall) continue;
+
+        // Check if this item succeeded or failed by looking at the event
+        const itemEvent = context.eventQueue.takeFromEnd(ItemCompleted, ItemFailed);
+        let itemSuccess = false;
+        
+        if (itemEvent) {
+          itemSuccess = ItemCompleted?.is(itemEvent) || false;
+        }
+
         const alNestedEvents = takeCompletedBatchItemEvents(context, innerCall);
 
         visitedSubItems[i] = {
           call: innerCall,
-          success: true,
+          success: itemSuccess,
           events: alNestedEvents,
           origin: context.origin,
           extrinsic: context.extrinsic,
         };
-      } else {
+      }
+    } else {
+      // If batchAll failed, all inner calls are considered failed
+      for (let i = 0; i < innerCalls.length; i++) {
+        let innerCall = innerCalls[i];
+        if (!innerCall) continue;
+        
         visitedSubItems[i] = {
           call: innerCall,
           success: false,
