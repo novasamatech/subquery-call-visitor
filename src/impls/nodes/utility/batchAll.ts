@@ -54,21 +54,13 @@ export class BatchAllNode implements NestedCallNode {
       for (let i = innerCalls.length - 1; i >= 0; i--) {
         let innerCall = innerCalls[i];
         if (!innerCall) continue;
-
-        // Check if this item succeeded or failed by looking at the event
-        const itemEvent = context.eventQueue.takeFromEnd(ItemCompleted, ItemFailed);
-        let itemSuccess = false;
-        
-        if (itemEvent) {
-          itemSuccess = ItemCompleted?.is(itemEvent) || false;
-        }
-
-        const alNestedEvents = takeCompletedBatchItemEvents(context, innerCall);
+        const itemEvent = context.eventQueue.takeFromEnd(...ItemEvents);
+        const itemSuccess = !!(itemEvent && ItemCompleted?.is(itemEvent));
 
         visitedSubItems[i] = {
           call: innerCall,
           success: itemSuccess,
-          events: alNestedEvents,
+          events: takeCompletedBatchItemEvents(context, innerCall),
           origin: context.origin,
           extrinsic: context.extrinsic,
         };
