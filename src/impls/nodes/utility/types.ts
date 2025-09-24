@@ -2,11 +2,21 @@ import { NodeContext } from '../../../interfaces';
 import { CallBase } from '@polkadot/types/types/calls';
 import { AnyTuple } from '@polkadot/types-codec/types';
 
-export const BatchCompleted = api.events.utility?.BatchCompleted;
-export const BatchCompletedWithErrors = api.events.utility?.BatchCompletedWithErrors;
-export const BatchInterrupted = api.events.utility?.BatchInterrupted;
-export const ItemCompleted = api.events.utility?.ItemCompleted;
-export const ItemFailed = api.events.utility?.ItemFailed;
+export function BatchCompleted(){
+  return api.events.utility?.BatchCompleted;
+}
+export function BatchCompletedWithErrors(){
+  return api.events.utility?.BatchCompletedWithErrors;
+}
+export function BatchInterrupted(){
+  return api.events.utility?.BatchInterrupted;
+}
+export function ItemCompleted(){
+  return api.events.utility?.ItemCompleted;
+}
+export function ItemFailed(){
+  return api.events.utility?.ItemFailed;
+}
 
 export function takeCompletedBatchItemEvents(context: NodeContext, call: CallBase<AnyTuple>) {
   const internalEventsEndExclusive = context.endExclusiveToSkipInternalEvents(call);
@@ -16,7 +26,7 @@ export function takeCompletedBatchItemEvents(context: NodeContext, call: CallBas
   const someOfNestedEvents = context.eventQueue.takeAllAfterInclusive(internalEventsEndExclusive);
 
   // now it is safe to go until ItemCompleted\ItemFailed since we removed all potential nested events above
-  const remainingNestedEvents = context.eventQueue.takeTail(ItemCompleted, ItemFailed);
+  const remainingNestedEvents = context.eventQueue.takeTail(ItemCompleted(), ItemFailed());
 
   return [...remainingNestedEvents, ...someOfNestedEvents];
 }

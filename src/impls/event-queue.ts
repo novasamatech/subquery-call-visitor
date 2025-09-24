@@ -15,7 +15,10 @@ class EventQueueImpl implements MutableEventQueue {
     this.events = new Array(...events);
   }
 
-  all(): AnyEvent[] {
+  all(endExclusive?: number): AnyEvent[] {
+    if (endExclusive !== undefined) {
+      return this.events.slice(0, endExclusive);
+    }
     return this.events;
   }
 

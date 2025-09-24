@@ -27,7 +27,7 @@ export interface MutableEventQueue extends EventQueue {
 }
 
 export interface EventQueue {
-  all(): AnyEvent[];
+  all(endExclusive?: number): AnyEvent[];
 
   peekItemFromEnd(eventTypes: IsEvent<AnyTuple>[], endExclusive: number): [AnyEvent, number] | undefined;
 

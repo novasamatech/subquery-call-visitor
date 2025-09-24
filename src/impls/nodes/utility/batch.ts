@@ -5,8 +5,13 @@ import { AnyTuple } from '@polkadot/types-codec/types';
 import { IVec } from '@polkadot/types-codec/types/interfaces';
 import { BatchCompleted, BatchInterrupted, ItemCompleted, takeCompletedBatchItemEvents } from './types';
 
-const CompletionEvents = [BatchCompleted, BatchInterrupted];
-const ItemEvents = [ItemCompleted];
+function CompletionEvents() {
+  return [BatchCompleted(), BatchInterrupted()]
+}
+
+function ItemEvents() {
+  return [ItemCompleted()];
+}
 
 export class BatchNode implements NestedCallNode {
   canVisit(call: CallBase<AnyTuple>): boolean {
@@ -18,18 +23,15 @@ export class BatchNode implements NestedCallNode {
 
     let endExclusive = context.endExclusive;
 
-    let completionItem = context.eventQueue.peekItemFromEnd(CompletionEvents, endExclusive);
-    if (!completionItem) return 0;
+    let completionItem = context.eventQueue.peekItemFromEnd(CompletionEvents(), endExclusive)!;
     let [completionEvent, completionIdx] = completionItem;
     endExclusive = completionIdx;
 
     let lastSuccessIndex = this.lastSucceedItemIndex(innerCalls, completionEvent);
 
     for (let i = lastSuccessIndex; i >= 0; i--) {
-      let innerCall = innerCalls[i];
-      if (!innerCall) continue;
-      let itemIdx = context.eventQueue.indexOfLast(ItemEvents, endExclusive);
-      if (typeof itemIdx === 'undefined') continue;
+      let innerCall = innerCalls[i]!;
+      let itemIdx = context.eventQueue.indexOfLast(ItemEvents(), endExclusive) || endExclusive;
       endExclusive = context.endExclusiveToSkipInternalEvents(innerCall, itemIdx);
     }
 
@@ -44,7 +46,7 @@ export class BatchNode implements NestedCallNode {
     let lastSuccessIndex: number = 0;
 
     if (context.callSucceeded) {
-      let completionEvent = context.eventQueue.takeFromEnd(BatchCompleted, BatchInterrupted);
+      let completionEvent = context.eventQueue.takeFromEnd(BatchCompleted(), BatchInterrupted());
       if (completionEvent) {
         context.logger.info(`Batch finished with ${completionEvent.method} outcome`);
         lastSuccessIndex = this.lastSucceedItemIndex(innerCalls, completionEvent);
@@ -61,7 +63,7 @@ export class BatchNode implements NestedCallNode {
     for (let i = lastSuccessIndex; i >= 0; i--) {
       let innerCall = innerCalls[i];
       if (!innerCall) continue;
-      context.eventQueue.popFromEnd(ItemCompleted);
+      context.eventQueue.popFromEnd(ItemCompleted());
       const alNestedEvents = takeCompletedBatchItemEvents(context, innerCall);
 
       visitedSubItems[i] = {
@@ -98,9 +100,9 @@ export class BatchNode implements NestedCallNode {
   }
 
   private numberOfSucceedItems(innerCals: CallBase<AnyTuple>[], event: AnyEvent): number {
-    if (BatchCompleted?.is(event)) {
+    if (BatchCompleted()?.is(event)) {
       return innerCals.length;
-    } else if (BatchInterrupted?.is(event)) {
+    } else if (BatchInterrupted()?.is(event)) {
       let [failedIndex] = event.data;
 
       return failedIndex.toNumber();
