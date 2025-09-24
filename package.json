@@ -1,6 +1,6 @@
 {
   "name": "subquery-call-visitor",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Easy traversing of nested Substrate calls in your SubQuery indexer",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -11,7 +11,10 @@
   "homepage": "https://github.com/nova-wallet/subquery-call-visitor",
   "repository": "github:nova-wallet/subquery-call-visitor",
   "files": [
-    "dist"
+    "dist/**/*",
+    "README.md",
+    "LICENCE",
+    "NOTICE"
   ],
   "author": "Novasama Techonologies",
   "license": "MIT",
