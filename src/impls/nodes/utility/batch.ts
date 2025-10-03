@@ -50,6 +50,8 @@ export class BatchNode implements NestedCallNode {
       if (completionEvent) {
         context.logger.info(`Batch finished with ${completionEvent.method} outcome`);
         lastSuccessIndex = this.lastSucceedItemIndex(innerCalls, completionEvent);
+      } else {
+        throw new Error("Batch succeeded but no BatchCompleted or BatchInterrupted were found");
       }
     } else {
       context.logger.info(`Batch was reverted by the outer parent`);
@@ -61,8 +63,7 @@ export class BatchNode implements NestedCallNode {
 
     // visit completed sub items
     for (let i = lastSuccessIndex; i >= 0; i--) {
-      let innerCall = innerCalls[i];
-      if (!innerCall) continue;
+      let innerCall = innerCalls[i]!;
       context.eventQueue.popFromEnd(ItemCompleted());
       const alNestedEvents = takeCompletedBatchItemEvents(context, innerCall);
 
@@ -77,8 +78,7 @@ export class BatchNode implements NestedCallNode {
 
     // visit uncompleted sub items
     for (let i = lastSuccessIndex + 1; i < innerCalls.length; i++) {
-      let innerCall = innerCalls[i];
-      if (!innerCall) continue;
+      let innerCall = innerCalls[i]!;
       visitedSubItems[i] = {
         call: innerCall,
         success: false,
@@ -89,8 +89,7 @@ export class BatchNode implements NestedCallNode {
     }
 
     for (let i = 0; i < visitedSubItems.length; i++) {
-      const visitedCall = visitedSubItems[i];
-      if (!visitedCall) continue;
+      const visitedCall = visitedSubItems[i]!;
       let events = visitedCall.events.map(e => e.method);
 
       context.logger.info(`Batch - visiting batch item at ${i}, item events: ${events.length}`);

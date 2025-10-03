@@ -103,6 +103,16 @@ class CallWalkImpl implements CallWalk {
     eventQueue: EventQueue,
     endExclusive: number,
   ): number {
+    // Do not pass empty event queues to the batch nodes
+    // we offload this check from them and only do it once - here
+    if (eventQueue.all().length == 0) {
+      return 0
+    }
+
+    if (eventQueue.all(endExclusive).length == 0) {
+      return endExclusive
+    }
+
     let nestedNode = this.findNestedNode(call);
 
     if (nestedNode != undefined) {

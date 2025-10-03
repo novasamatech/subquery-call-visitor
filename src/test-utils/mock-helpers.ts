@@ -95,6 +95,10 @@ export class MockHelpers {
         section: 'utility',
         method: 'BatchCompleted'
       }),
+      BatchCompletedWithErrors: MockHelpers.createMockEvent({
+        section: 'utility',
+        method: 'BatchCompletedWithErrors'
+      }),
       BatchInterrupted: (index: number) => MockHelpers.createMockEvent({
         section: 'utility',
         method: 'BatchInterrupted',
@@ -139,6 +143,14 @@ export class MockHelpers {
     return MockHelpers.createMockCall({
       section: 'utility',
       method: 'batch',
+      args: [innerCalls]
+    });
+  }
+
+  static createForceBatchCall(innerCalls: CallBase<AnyTuple>[]): CallBase<AnyTuple> {
+    return MockHelpers.createMockCall({
+      section: 'utility',
+      method: 'forceBatch',
       args: [innerCalls]
     });
   }

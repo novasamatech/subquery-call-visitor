@@ -1,5 +1,4 @@
 import { describe, test, beforeEach, expect } from '@jest/globals';
-import { BatchAllNode } from './batchAll';
 import { BatchNode } from './batch';
 import { TestWalk, MockHelpers, TestAssertions } from '../../../test-utils';
 import { CallBase } from '@polkadot/types/types/calls';
@@ -7,7 +6,7 @@ import { AnyTuple } from '@polkadot/types-codec/types';
 import { AnyEvent } from '../../../interfaces';
 import { setItemEventsPresent } from '../../../test-utils/setup';
 
-describe('BatchAllWalkTest', () => {
+describe('BatchWalkTest', () => {
   let testWalk: TestWalk;
   let utilityEvents: ReturnType<typeof MockHelpers.createUtilityEvents>;
   let testEvent: AnyEvent;
@@ -15,19 +14,23 @@ describe('BatchAllWalkTest', () => {
   const signer = new Uint8Array([0x00]);
 
   beforeEach(() => {
-    testWalk = new TestWalk([new BatchAllNode()]);
+    testWalk = new TestWalk([new BatchNode()]);
     utilityEvents = MockHelpers.createUtilityEvents();
     testEvent = MockHelpers.createTestEvent();
     testInnerCall = MockHelpers.createTestCall();
     setItemEventsPresent(true)
   });
 
-  function createBatchAllCall(...innerCalls: CallBase<AnyTuple>[]): CallBase<AnyTuple> {
-    return MockHelpers.createBatchAllCall(innerCalls);
+  function createBatchCall(...innerCalls: CallBase<AnyTuple>[]): CallBase<AnyTuple> {
+    return MockHelpers.createBatchCall(innerCalls);
   }
 
   function itemCompleted(): AnyEvent {
     return utilityEvents.ItemCompleted;
+  }
+
+  function batchInterrupted(index: number): AnyEvent {
+    return utilityEvents.BatchInterrupted(index);
   }
 
   function batchCompleted(): AnyEvent {
@@ -38,21 +41,13 @@ describe('BatchAllWalkTest', () => {
     return utilityEvents.ExtrinsicSuccess;
   }
 
-  function extrinsicFailed(): AnyEvent {
-    return utilityEvents.ExtrinsicFailed;
-  }
-
-  function batchInterrupted(index: number): AnyEvent {
-    return utilityEvents.BatchInterrupted(index);
-  }
-
   test('shouldVisitSucceededSingleBatchedCall', async () => {
     const innerBatchEvents = [testEvent];
     const events = [...innerBatchEvents, itemCompleted(), batchCompleted(), extrinsicSuccess()];
 
     const extrinsic = MockHelpers.createMockExtrinsic({
       signer,
-      call: createBatchAllCall(testInnerCall),
+      call: createBatchCall(testInnerCall),
       events,
       success: true
     });
@@ -66,13 +61,13 @@ describe('BatchAllWalkTest', () => {
   });
 
   test('shouldVisitFailedSingleBatchedCall', async () => {
-    const events = [extrinsicFailed()];
+    const events = [batchInterrupted(0), extrinsicSuccess()];
 
     const extrinsic = MockHelpers.createMockExtrinsic({
       signer,
-      call: createBatchAllCall(testInnerCall),
+      call: createBatchCall(testInnerCall),
       events,
-      success: false
+      success: true
     });
 
     const visit = await testWalk.walkSingleIgnoringBranches(extrinsic);
@@ -98,7 +93,7 @@ describe('BatchAllWalkTest', () => {
 
     const extrinsic = MockHelpers.createMockExtrinsic({
       signer,
-      call: createBatchAllCall(testInnerCall, testInnerCall),
+      call: createBatchCall(testInnerCall, testInnerCall),
       events,
       success: true
     });
@@ -113,24 +108,37 @@ describe('BatchAllWalkTest', () => {
     });
   });
 
-  test('shouldVisitFailedMultipleBatchedCalls', async () => {
-    const events = [extrinsicFailed()];
+  test('shouldVisitPartiallyFailedBatchCalls', async () => {
+    const innerBatchEvents = [testEvent];
+    const events = [
+      ...innerBatchEvents,
+      itemCompleted(),
+
+      batchInterrupted(1),
+
+      extrinsicSuccess()
+    ];
 
     const extrinsic = MockHelpers.createMockExtrinsic({
       signer,
-      call: createBatchAllCall(testInnerCall, testInnerCall),
+      call: createBatchCall(testInnerCall, testInnerCall),
       events,
-      success: false
+      success: true
     });
 
     const visits = await testWalk.walkMultipleIgnoringBranches(extrinsic, 2);
 
-    visits.forEach(visit => {
-      expect(visit.success).toBe(false);
-      TestAssertions.expectSignerEquals(visit.origin, signer);
-      expect(visit.call).toBe(testInnerCall);
-      expect(visit.events).toEqual([]);
-    });
+    const successItem = visits[0]!
+    expect(successItem.success).toBe(true);
+    TestAssertions.expectSignerEquals(successItem.origin, signer);
+    expect(successItem.call).toBe(testInnerCall);
+    expect(successItem.events).toEqual(innerBatchEvents);
+
+    const failedItem = visits[1]!
+    expect(failedItem.success).toBe(false);
+    TestAssertions.expectSignerEquals(failedItem.origin, signer);
+    expect(failedItem.call).toBe(testInnerCall);
+    expect(failedItem.events).toEqual([]);
   });
 
   test('shouldVisitNestedBatches', async () => {
@@ -169,11 +177,11 @@ describe('BatchAllWalkTest', () => {
 
     const extrinsic = MockHelpers.createMockExtrinsic({
       signer,
-      call: createBatchAllCall(
+      call: createBatchCall(
         testInnerCall,
-        createBatchAllCall(
+        createBatchCall(
           testInnerCall,
-          createBatchAllCall(
+          createBatchCall(
             testInnerCall,
             testInnerCall
           )
@@ -194,38 +202,7 @@ describe('BatchAllWalkTest', () => {
     });
   });
 
-  test('should handle https://westend.subscan.io/extrinsic/6624751-2', async () => {
-    setItemEventsPresent(false)
-
-    const realWorldTestWalk = new TestWalk([new BatchNode(), new BatchAllNode()]);
-
-    const events = [
-      batchInterrupted(0),
-      batchCompleted(),
-      extrinsicFailed()
-    ];
-
-    const extrinsic = MockHelpers.createMockExtrinsic({
-      signer,
-      call: MockHelpers.createBatchAllCall([
-        MockHelpers.createBatchCall([
-          MockHelpers.createBatchAllCall([
-            testInnerCall,
-          ])
-        ])
-      ]),
-      events,
-      success: true
-    });
-
-    const visit = await realWorldTestWalk.walkSingleIgnoringBranches(extrinsic);
-
-    expect(visit!.success).toBe(false);
-    expect(visit!.call).toBe(testInnerCall);
-    expect(visit.events).toEqual([]);
-    TestAssertions.expectSignerEquals(visit.origin, signer);
-  });
-
+  // Based on https://westend.subscan.io/extrinsic/3788316-1
   // When visiting a batch on the older blocks, where ItemCompleted is not present, we will
   // put all the batch events into each item events to allow further indexing
   test('should handle not defined ItemCompleted', async () => {
@@ -234,8 +211,8 @@ describe('BatchAllWalkTest', () => {
     const innerBatchEvents = [testEvent];
 
     const events = [
-      ...innerBatchEvents,
-      ...innerBatchEvents,
+        ...innerBatchEvents,
+        ...innerBatchEvents,
       batchCompleted(),
       ...innerBatchEvents,
       batchCompleted(),
@@ -244,8 +221,8 @@ describe('BatchAllWalkTest', () => {
 
     const extrinsic = MockHelpers.createMockExtrinsic({
       signer,
-      call: createBatchAllCall(
-        createBatchAllCall(
+      call: createBatchCall(
+        createBatchCall(
           testInnerCall,
           testInnerCall
         ),
@@ -271,6 +248,53 @@ describe('BatchAllWalkTest', () => {
           ...innerBatchEvents
         ]
       }
+    ];
+
+    visits.forEach((visit, index) => {
+      const exp = expected[index]!;
+      expect(visit.success).toBe(exp.success);
+      TestAssertions.expectSignerEquals(visit.origin, signer);
+      expect(visit.call).toBe(testInnerCall);
+      expect(visit.events).toEqual(exp.events);
+    });
+  });
+
+  // This tests verifies that the node can handle a case when inner items have interfering events
+  // So the node should skip inner events even in the absence of the ItemCompleted evnet
+  test('should handle not defined ItemCompleted with interferring nested events', async () => {
+    setItemEventsPresent(false)
+
+    const innerBeatchEvents = [MockHelpers.createTestEvent("test")]
+
+    const events = [
+      ...innerBeatchEvents,
+      batchCompleted(),
+      batchInterrupted(0),
+      batchCompleted(),
+      extrinsicSuccess()
+    ];
+
+    const extrinsic = MockHelpers.createMockExtrinsic({
+      signer,
+      call: createBatchCall(
+        // This succeeded
+        createBatchCall(
+          testInnerCall,
+        ),
+        // This batch failed
+        createBatchCall(
+          testInnerCall
+        )
+      ),
+      events,
+      success: true
+    });
+
+    const visits = await testWalk.walkMultipleIgnoringBranches(extrinsic, 2);
+
+    const expected: Array<{ success: boolean; events: AnyEvent[] }> = [
+      { success: true, events: [...innerBeatchEvents] },
+      { success: false, events: [] },
     ];
 
     visits.forEach((visit, index) => {

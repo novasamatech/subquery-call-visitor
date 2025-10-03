@@ -1,13 +1,12 @@
 import { describe, test, beforeEach, expect } from '@jest/globals';
-import { BatchAllNode } from './batchAll';
-import { BatchNode } from './batch';
+import { ForceBatchNode } from './forceBatch';
 import { TestWalk, MockHelpers, TestAssertions } from '../../../test-utils';
 import { CallBase } from '@polkadot/types/types/calls';
 import { AnyTuple } from '@polkadot/types-codec/types';
 import { AnyEvent } from '../../../interfaces';
 import { setItemEventsPresent } from '../../../test-utils/setup';
 
-describe('BatchAllWalkTest', () => {
+describe('ForceBatchWalkTest', () => {
   let testWalk: TestWalk;
   let utilityEvents: ReturnType<typeof MockHelpers.createUtilityEvents>;
   let testEvent: AnyEvent;
@@ -15,35 +14,35 @@ describe('BatchAllWalkTest', () => {
   const signer = new Uint8Array([0x00]);
 
   beforeEach(() => {
-    testWalk = new TestWalk([new BatchAllNode()]);
+    testWalk = new TestWalk([new ForceBatchNode()]);
     utilityEvents = MockHelpers.createUtilityEvents();
     testEvent = MockHelpers.createTestEvent();
     testInnerCall = MockHelpers.createTestCall();
     setItemEventsPresent(true)
   });
 
-  function createBatchAllCall(...innerCalls: CallBase<AnyTuple>[]): CallBase<AnyTuple> {
-    return MockHelpers.createBatchAllCall(innerCalls);
+  function createForceBatchCall(...innerCalls: CallBase<AnyTuple>[]): CallBase<AnyTuple> {
+    return MockHelpers.createForceBatchCall(innerCalls);
   }
 
   function itemCompleted(): AnyEvent {
     return utilityEvents.ItemCompleted;
   }
 
+  function itemFailed(): AnyEvent {
+    return utilityEvents.ItemFailed;
+  }
+
   function batchCompleted(): AnyEvent {
     return utilityEvents.BatchCompleted;
   }
 
+  function batchCompletedWithErrors(): AnyEvent {
+    return utilityEvents.BatchCompletedWithErrors;
+  }
+
   function extrinsicSuccess(): AnyEvent {
     return utilityEvents.ExtrinsicSuccess;
-  }
-
-  function extrinsicFailed(): AnyEvent {
-    return utilityEvents.ExtrinsicFailed;
-  }
-
-  function batchInterrupted(index: number): AnyEvent {
-    return utilityEvents.BatchInterrupted(index);
   }
 
   test('shouldVisitSucceededSingleBatchedCall', async () => {
@@ -52,7 +51,7 @@ describe('BatchAllWalkTest', () => {
 
     const extrinsic = MockHelpers.createMockExtrinsic({
       signer,
-      call: createBatchAllCall(testInnerCall),
+      call: createForceBatchCall(testInnerCall),
       events,
       success: true
     });
@@ -66,13 +65,14 @@ describe('BatchAllWalkTest', () => {
   });
 
   test('shouldVisitFailedSingleBatchedCall', async () => {
-    const events = [extrinsicFailed()];
+    const innerBatchEvents = [testEvent];
+    const events = [...innerBatchEvents, itemFailed(), batchCompletedWithErrors(), extrinsicSuccess()];
 
     const extrinsic = MockHelpers.createMockExtrinsic({
       signer,
-      call: createBatchAllCall(testInnerCall),
+      call: createForceBatchCall(testInnerCall),
       events,
-      success: false
+      success: true
     });
 
     const visit = await testWalk.walkSingleIgnoringBranches(extrinsic);
@@ -98,7 +98,7 @@ describe('BatchAllWalkTest', () => {
 
     const extrinsic = MockHelpers.createMockExtrinsic({
       signer,
-      call: createBatchAllCall(testInnerCall, testInnerCall),
+      call: createForceBatchCall(testInnerCall, testInnerCall),
       events,
       success: true
     });
@@ -113,23 +113,42 @@ describe('BatchAllWalkTest', () => {
     });
   });
 
-  test('shouldVisitFailedMultipleBatchedCalls', async () => {
-    const events = [extrinsicFailed()];
+  test('shouldVisitMixedMultipleBatchedCalls', async () => {
+    const innerBatchEvents = [testEvent];
+    const events = [
+      ...innerBatchEvents,
+      itemCompleted(),
+
+      itemFailed(),
+
+      ...innerBatchEvents,
+      itemCompleted(),
+
+      batchCompletedWithErrors(),
+      extrinsicSuccess()
+    ];
 
     const extrinsic = MockHelpers.createMockExtrinsic({
       signer,
-      call: createBatchAllCall(testInnerCall, testInnerCall),
+      call: createForceBatchCall(testInnerCall, testInnerCall, testInnerCall),
       events,
-      success: false
+      success: true
     });
 
-    const visits = await testWalk.walkMultipleIgnoringBranches(extrinsic, 2);
+    const visits = await testWalk.walkMultipleIgnoringBranches(extrinsic, 3);
 
-    visits.forEach(visit => {
-      expect(visit.success).toBe(false);
+    const expected: Array<{ success: boolean; events: AnyEvent[] }> = [
+      { success: true, events: innerBatchEvents },
+      { success: false, events: [] },
+      { success: true, events: innerBatchEvents }
+    ];
+
+    visits.forEach((visit, index) => {
+      const exp = expected[index]!;
+      expect(visit.success).toBe(exp.success);
       TestAssertions.expectSignerEquals(visit.origin, signer);
       expect(visit.call).toBe(testInnerCall);
-      expect(visit.events).toEqual([]);
+      expect(visit.events).toEqual(exp.events);
     });
   });
 
@@ -169,11 +188,11 @@ describe('BatchAllWalkTest', () => {
 
     const extrinsic = MockHelpers.createMockExtrinsic({
       signer,
-      call: createBatchAllCall(
+      call: createForceBatchCall(
         testInnerCall,
-        createBatchAllCall(
+        createForceBatchCall(
           testInnerCall,
-          createBatchAllCall(
+          createForceBatchCall(
             testInnerCall,
             testInnerCall
           )
@@ -191,94 +210,6 @@ describe('BatchAllWalkTest', () => {
       TestAssertions.expectSignerEquals(visit.origin, signer);
       expect(visit.call).toBe(testInnerCall);
       expect(visit.events).toEqual(innerBatchEvents);
-    });
-  });
-
-  test('should handle https://westend.subscan.io/extrinsic/6624751-2', async () => {
-    setItemEventsPresent(false)
-
-    const realWorldTestWalk = new TestWalk([new BatchNode(), new BatchAllNode()]);
-
-    const events = [
-      batchInterrupted(0),
-      batchCompleted(),
-      extrinsicFailed()
-    ];
-
-    const extrinsic = MockHelpers.createMockExtrinsic({
-      signer,
-      call: MockHelpers.createBatchAllCall([
-        MockHelpers.createBatchCall([
-          MockHelpers.createBatchAllCall([
-            testInnerCall,
-          ])
-        ])
-      ]),
-      events,
-      success: true
-    });
-
-    const visit = await realWorldTestWalk.walkSingleIgnoringBranches(extrinsic);
-
-    expect(visit!.success).toBe(false);
-    expect(visit!.call).toBe(testInnerCall);
-    expect(visit.events).toEqual([]);
-    TestAssertions.expectSignerEquals(visit.origin, signer);
-  });
-
-  // When visiting a batch on the older blocks, where ItemCompleted is not present, we will
-  // put all the batch events into each item events to allow further indexing
-  test('should handle not defined ItemCompleted', async () => {
-    setItemEventsPresent(false)
-
-    const innerBatchEvents = [testEvent];
-
-    const events = [
-      ...innerBatchEvents,
-      ...innerBatchEvents,
-      batchCompleted(),
-      ...innerBatchEvents,
-      batchCompleted(),
-      extrinsicSuccess()
-    ];
-
-    const extrinsic = MockHelpers.createMockExtrinsic({
-      signer,
-      call: createBatchAllCall(
-        createBatchAllCall(
-          testInnerCall,
-          testInnerCall
-        ),
-        testInnerCall
-      ),
-      events,
-      success: true
-    });
-
-    const visits = await testWalk.walkMultipleIgnoringBranches(extrinsic, 3);
-
-    const expected: Array<{ success: boolean; events: AnyEvent[] }> = [
-      // For the first two items, which constitutes inner batch, we will see all events from the inner batch
-      { success: true, events: [...innerBatchEvents, ...innerBatchEvents] },
-      { success: true, events: [...innerBatchEvents, ...innerBatchEvents] },
-      // For the 3rd call, we will see all events from the outer batch
-      {
-        success: true,
-        events: [
-          ...innerBatchEvents,
-          ...innerBatchEvents,
-          batchCompleted(),
-          ...innerBatchEvents
-        ]
-      }
-    ];
-
-    visits.forEach((visit, index) => {
-      const exp = expected[index]!;
-      expect(visit.success).toBe(exp.success);
-      TestAssertions.expectSignerEquals(visit.origin, signer);
-      expect(visit.call).toBe(testInnerCall);
-      expect(visit.events).toEqual(exp.events);
     });
   });
 });

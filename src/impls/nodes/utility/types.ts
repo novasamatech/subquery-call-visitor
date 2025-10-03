@@ -1,4 +1,4 @@
-import { NodeContext } from '../../../interfaces';
+import { AnyEvent, NodeContext } from '../../../interfaces';
 import { CallBase } from '@polkadot/types/types/calls';
 import { AnyTuple } from '@polkadot/types-codec/types';
 
@@ -18,7 +18,24 @@ export function ItemFailed(){
   return api.events.utility?.ItemFailed;
 }
 
-export function takeCompletedBatchItemEvents(context: NodeContext, call: CallBase<AnyTuple>) {
+function ItemEventsExistsInRuntime(): boolean {
+  return ItemCompleted() !== undefined
+}
+
+export function takeCompletedBatchItemEvents(
+  context: NodeContext,
+  call: CallBase<AnyTuple>,
+): AnyEvent[] {
+  if (!ItemEventsExistsInRuntime()) {
+    const currentEvents = context.eventQueue.all()
+
+    // Delete nested events that case collisions
+    const internalEventsEndExclusive = context.endExclusiveToSkipInternalEvents(call);
+    context.eventQueue.takeAllAfterInclusive(internalEventsEndExclusive);
+
+    return currentEvents
+  }
+
   const internalEventsEndExclusive = context.endExclusiveToSkipInternalEvents(call);
 
   // internalEnd is exclusive => it holds index of last internal event
