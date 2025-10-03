@@ -38,6 +38,11 @@ export interface VisitedCall {
 
   /**
    * All events that are related to this specific call
+   * NOTE: that for some cases (e.g. batch on older blocks) it might not be possible
+   * to fully separate items of this visit from another so be carefully when searching in those events
+   * always apply additional filters to ensure you search for the exact event you want
+   *
+   * However, this field will contain **at least all** items corresponding to the given call
    */
   events: AnyEvent[];
 

@@ -1,4 +1,4 @@
-import { NodeContext } from '../../../interfaces';
+import { AnyEvent, NodeContext } from '../../../interfaces';
 import { CallBase } from '@polkadot/types/types/calls';
 import { AnyTuple } from '@polkadot/types-codec/types';
 
@@ -18,7 +18,25 @@ export function ItemFailed(){
   return api.events.utility?.ItemFailed;
 }
 
-export function takeCompletedBatchItemEvents(context: NodeContext, call: CallBase<AnyTuple>) {
+function ItemEventsExistsInRuntime(): boolean {
+  return ItemCompleted() !== undefined
+}
+
+export function takeCompletedBatchItemEvents(
+  context: NodeContext,
+  call: CallBase<AnyTuple>,
+): AnyEvent[] {
+  if (!ItemEventsExistsInRuntime()) {
+    // Unless the batch is just of size 1
+    return context.eventQueue.all()
+    // if (batchLength > 0) {
+    //   // We cannot derive which events corresponds to a batch item on older blocks
+    //   return []
+    // } else {
+    //
+    // }
+  }
+
   const internalEventsEndExclusive = context.endExclusiveToSkipInternalEvents(call);
 
   // internalEnd is exclusive => it holds index of last internal event
