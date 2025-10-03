@@ -19,7 +19,7 @@ class EventQueueImpl implements MutableEventQueue {
     if (endExclusive !== undefined) {
       return this.events.slice(0, endExclusive);
     }
-    return this.events;
+    return [...this.events];
   }
 
   peekItemFromEnd(eventTypes: IsEvent<AnyTuple, Object>[], endExclusive: number): [AnyEvent, number] | undefined {

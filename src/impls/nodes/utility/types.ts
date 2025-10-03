@@ -27,14 +27,13 @@ export function takeCompletedBatchItemEvents(
   call: CallBase<AnyTuple>,
 ): AnyEvent[] {
   if (!ItemEventsExistsInRuntime()) {
-    // Unless the batch is just of size 1
-    return context.eventQueue.all()
-    // if (batchLength > 0) {
-    //   // We cannot derive which events corresponds to a batch item on older blocks
-    //   return []
-    // } else {
-    //
-    // }
+    const currentEvents = context.eventQueue.all()
+
+    // Delete nested events that case collisions
+    const internalEventsEndExclusive = context.endExclusiveToSkipInternalEvents(call);
+    context.eventQueue.takeAllAfterInclusive(internalEventsEndExclusive);
+
+    return currentEvents
   }
 
   const internalEventsEndExclusive = context.endExclusiveToSkipInternalEvents(call);

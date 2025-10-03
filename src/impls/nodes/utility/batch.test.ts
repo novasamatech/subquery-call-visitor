@@ -258,4 +258,51 @@ describe('BatchWalkTest', () => {
       expect(visit.events).toEqual(exp.events);
     });
   });
+
+  // This tests verifies that the node can handle a case when inner items have interfering events
+  // So the node should skip inner events even in the absence of the ItemCompleted evnet
+  test('should handle not defined ItemCompleted with interferring nested events', async () => {
+    setItemEventsPresent(false)
+
+    const innerBeatchEvents = [MockHelpers.createTestEvent("test")]
+
+    const events = [
+      ...innerBeatchEvents,
+      batchCompleted(),
+      batchInterrupted(0),
+      batchCompleted(),
+      extrinsicSuccess()
+    ];
+
+    const extrinsic = MockHelpers.createMockExtrinsic({
+      signer,
+      call: createBatchCall(
+        // This succeeded
+        createBatchCall(
+          testInnerCall,
+        ),
+        // This batch failed
+        createBatchCall(
+          testInnerCall
+        )
+      ),
+      events,
+      success: true
+    });
+
+    const visits = await testWalk.walkMultipleIgnoringBranches(extrinsic, 2);
+
+    const expected: Array<{ success: boolean; events: AnyEvent[] }> = [
+      { success: true, events: [...innerBeatchEvents] },
+      { success: false, events: [] },
+    ];
+
+    visits.forEach((visit, index) => {
+      const exp = expected[index]!;
+      expect(visit.success).toBe(exp.success);
+      TestAssertions.expectSignerEquals(visit.origin, signer);
+      expect(visit.call).toBe(testInnerCall);
+      expect(visit.events).toEqual(exp.events);
+    });
+  });
 });
