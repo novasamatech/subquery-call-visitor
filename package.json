@@ -1,5 +1,4 @@
 {
-  "prepare": "tsc",
   "name": "subquery-call-visitor",
   "version": "1.4.2",
   "description": "Easy traversing of nested Substrate calls in your SubQuery indexer",
