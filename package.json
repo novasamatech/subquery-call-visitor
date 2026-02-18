@@ -1,6 +1,6 @@
 {
   "name": "subquery-call-visitor",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Easy traversing of nested Substrate calls in your SubQuery indexer",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

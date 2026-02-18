@@ -1,6 +1,6 @@
 import { IVec } from '@polkadot/types-codec/types/interfaces';
 import { AccountId } from '@polkadot/types/interfaces/runtime/types';
-import { encodeMultiAddress, ethereumEncode, isEthereumAddress, createKeyMulti } from '@polkadot/util-crypto';
+import { isEthereumAddress, ethereumEncode, createKeyMulti, decodeAddress, encodeAddress } from '@polkadot/util-crypto';
 
 export const MultisigExecuted = api.events?.multisig?.MultisigExecuted;
 export const MultisigApproval = api.events?.multisig?.MultisigApproval;
@@ -11,8 +11,19 @@ export function generateMultisigAddress(origin: string, otherSignatories: IVec<A
   const allAddresses = otherSignatoriesAddresses.concat(origin);
 
   if (isEthereumAddress(origin)) {
-    return ethereumEncode(createKeyMulti(allAddresses, threshold).slice(0, 20));
+    return ethereumEncode(
+      createKeyMulti(
+        allAddresses.map(a => decodeAddress(a, true)),
+        threshold,
+      ).slice(0, 20),
+    );
   } else {
-    return encodeMultiAddress(allAddresses, threshold, api.registry.chainSS58);
+    return encodeAddress(
+      createKeyMulti(
+        allAddresses.map(a => decodeAddress(a, true)),
+        threshold,
+      ),
+      api.registry.chainSS58,
+    );
   }
 }

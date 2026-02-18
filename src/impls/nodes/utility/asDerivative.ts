@@ -2,7 +2,7 @@ import { AnyEvent, EventCountingContext, NestedCallNode, VisitedCall, NodeContex
 import { CallBase } from '@polkadot/types/types/calls';
 import { AnyTuple } from '@polkadot/types-codec/types';
 import { INumber } from '@polkadot/types-codec/types/interfaces';
-import { encodeDerivedAddress } from '@polkadot/util-crypto';
+import { decodeAddress, encodeAddress, createKeyDerived } from '@polkadot/util-crypto';
 
 export class AsDerivativeNode implements NestedCallNode {
   canVisit(call: CallBase<AnyTuple>): boolean {
@@ -69,6 +69,6 @@ export class AsDerivativeNode implements NestedCallNode {
   private extractInnerOrigin(call: CallBase<AnyTuple>, parentOrigin: string): string {
     const index = call.args[0] as INumber;
 
-    return encodeDerivedAddress(parentOrigin, index.toNumber());
+    return encodeAddress(createKeyDerived(decodeAddress(parentOrigin, true), index.toNumber()));
   }
 }
