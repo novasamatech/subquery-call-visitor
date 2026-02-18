@@ -8,8 +8,8 @@ Package that allows you to easily traverse nested Substrate calls
 
 ## Install package
 ``` shell
-yarn add subquery-call-visitor
-yarn install
+pnpm add subquery-call-visitor
+pnpm install
 ```
 
 ## Setup visitor
