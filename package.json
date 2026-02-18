@@ -21,7 +21,7 @@
     "@polkadot/api-augment": "^16",
     "@polkadot/types": "^16",
     "@polkadot/types-codec": "^16",
-    "@polkadot/util-crypto": "^13.5.3",
+    "@polkadot/util-crypto": "^13.5.6",
     "@subql/cli": "latest",
     "@subql/types": "latest",
     "@types/jest": "^29.3.1",
