@@ -23,4 +23,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
-- Added `Troubleshooting` section to `AGENTS.md` with a detailed incident note for `"Uint8Array expected"` on EVM chains, including dependency-drift root cause and mitigation guidance.
+- Added `AGENTS.md` 
